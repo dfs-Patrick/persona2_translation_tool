@@ -47,8 +47,8 @@ const walk = async (directory: string): Promise<string[]> => {
   return files;
 };
 
-const splitMessages = (text: string): TbfTranslation[] => {
-  const lines = text.split("\n");
+export const splitMessages = (text: string): TbfTranslation[] => {
+  const lines = text.replaceAll("\r\n", "\n").split("\n");
   const translations: TbfTranslation[] = [];
   let index = 0;
 
@@ -63,10 +63,9 @@ const splitMessages = (text: string): TbfTranslation[] => {
     index++;
     const body: string[] = [];
     while (index < lines.length) {
+      if (/^([^:#][^:]*)\s*:\s*$/.test(lines[index])) break;
       body.push(lines[index]);
-      const done = lines[index].trimEnd().endsWith("[end]");
       index++;
-      if (done) break;
     }
 
     let before = body.join("\n");

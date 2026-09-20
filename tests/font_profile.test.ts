@@ -9,7 +9,7 @@ import { loadEventEncoding, loadFontEncoding, EncodingScheme, loadLocale } from 
 import { fromTools } from "../lib/util/filesystem";
 import { messageToBin, parseMessage } from "../lib/msg/msg";
 import { Game } from "../lib/util/context";
-import { validateTbfEncoding } from "../lib/msg/tbf";
+import { splitMessages, validateTbfEncoding } from "../lib/msg/tbf";
 
 const prefix = [0x35, 0x36, 1, 5, 0x112b, 0x5ea, 0xe31, 0x9cf,
   0x9ec, 0x8dc, 0x115a, 0xa35, 0xeaa, 0x823, 0xa9c, 0x120,
@@ -25,6 +25,14 @@ const executable = () => {
 const locale = { event: loadEventEncoding({ "0040": "@", "0a0d": "é" }), font: loadFontEncoding({}) };
 const context = { game: Game.IS, locale, constants: {}, file: "dialogue.msg", base: 0,
   encoding: EncodingScheme.event, terminator: 0x1103, strictEncoding: true };
+
+test("message after files split on keys with ret terminators", () => {
+  const messages = splitMessages("msg_0:\nPrimeira linha[end_diag][wait][ret]\n\nmsg_1:\nSegunda[end_diag][wait][ret]\n");
+  assert.equal(messages.length, 2);
+  assert.equal(messages[0].text.before, "Primeira linha");
+  assert.equal(messages[0].info.after_msg, "[end_diag][wait][ret]\n");
+  assert.equal(messages[1].text.before, "Segunda");
+});
 
 test("default uses the bundled PT-BR profile even with a project-local copy", async () => {
   const dir = await mkdtemp(join(tmpdir(), "p2-profile-test-"));
