@@ -1,6 +1,6 @@
 # Windows, Docker e PPSSPP
 
-A ferramenta executa em um container Arch Linux; o PPSSPP executa no Windows e abre a ISO pela pasta compartilhada `lab`. Assim, a futura extensão do VS Code poderá reconstruir e iniciar o jogo ao salvar sem executar uma interface gráfica dentro do Docker.
+A ferramenta executa em um container Arch Linux; o PPSSPP executa no Windows e abre a ISO pela pasta compartilhada `lab`. O editor TBF do VS Code reconstrói a ISO e pode iniciar o jogo ao salvar, sem executar uma interface gráfica dentro do Docker. Consulte o [guia do editor](vscode-editor.md) para a instalação automática no Dev Container.
 
 ## Preparação
 
