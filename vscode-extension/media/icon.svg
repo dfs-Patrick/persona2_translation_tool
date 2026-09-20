@@ -1,1 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none" stroke="#c5c5c5" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M6 8h3M6 12h3M6 16h3M15 8h3M15 12h3M15 16h3"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+	<rect width="512" height="512" fill="#050505"/>
+	<g fill="none" stroke="#fff" stroke-width="7">
+		<rect x="20" y="20" width="472" height="472"/>
+		<path d="M20 132h472M20 380h472M84 132v248M428 132v248"/>
+	</g>
+	<g fill="#fff" font-family="Arial Narrow,Arial,sans-serif" font-size="57" font-stretch="condensed" text-anchor="middle">
+		<text x="256" y="101">SEVEN SISTERS</text>
+		<text x="256" y="455">HIGH SCHOOL</text>
+	</g>
+	<g fill="#fff">
+		<path d="m256 145 11 27 29 2-22 19 7 29-25-16-25 16 7-29-22-19 29-2z"/>
+		<path d="m364 173 8 19 21 2-16 13 5 21-18-12-18 12 5-21-16-13 21-2z"/>
+		<path d="m173 214 17 39 42 4-32 27 10 41-37-23-37 23 10-41-32-27 42-4z"/>
+		<path d="m256 205 12 28 30 3-23 19 7 29-26-16-26 16 7-29-23-19 30-3z"/>
+		<path d="m315 224 13 31 33 3-25 21 8 32-29-18-29 18 8-32-25-21 33-3z"/>
+		<path d="m220 285 14 33 35 3-27 23 8 34-30-19-30 19 8-34-27-23 35-3z"/>
+	</g>
+</svg>
