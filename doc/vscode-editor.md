@@ -1,57 +1,70 @@
 # Editor TBF no VS Code
 
-## Instalação no Windows
+## Instalação e primeiro uso
 
-1. Instale **Docker Desktop**, inicie-o com containers Linux e backend WSL 2.
-2. Instale o **VS Code** e a extensão Microsoft **Dev Containers** (`ms-vscode-remote.remote-containers`). Instale também o **PPSSPP para Windows** para testar o jogo. Veja o [guia Windows](windows-docker.md) para os links e requisitos.
+Siga esta ordem uma única vez. Não instale os VSIX manualmente: o Dev Container
+instala automaticamente o editor TBF e o PPSSPP Host ao terminar a conexão.
+
+1. Instale o **Docker Desktop** com containers Linux e backend WSL 2.
+2. Instale o **VS Code** e a extensão Microsoft **Dev Containers**
+   (`ms-vscode-remote.remote-containers`). Instale também o **PPSSPP para
+   Windows** se quiser testar o jogo.
 3. Clone o projeto em uma pasta do Windows e abra essa pasta no VS Code.
-4. Execute **Dev Containers: Reopen in Container** pela paleta (Ctrl+Shift+P).
-   A primeira construção instala a ferramenta e prepara os dois VSIX versionados.
-5. Aguarde o comando pós-conexão instalar **Persona 2 — Editor TBF** e
-   **Persona 2 — PPSSPP Host**. Se necessário, execute **Developer: Reload Window**.
-   A barra inferior deve indicar o container.
+4. Pressione `Ctrl+Shift+P`, execute **Dev Containers: Reopen in Container** e
+   aguarde a construção terminar. Na primeira vez, isso compila a ferramenta e
+   gera os dois VSIX dentro da imagem.
+5. Aguarde o aviso de conexão concluída. O comando pós-conexão copia os VSIX
+   para `lab/tools` e instala automaticamente **Persona 2 — Editor TBF** e
+   **Persona 2 — PPSSPP Host**. Se o VS Code pedir para recarregar, escolha
+   **Reload Window**. A barra inferior deve mostrar o container.
+6. Abra a aba **Persona 2** na barra de atividades. Ela mostra a árvore
+   **Arquivos de tradução**. Se a árvore estiver vazia, ainda não houve extração.
+7. No Explorer do Windows, abra `<pasta-do-projeto>\lab\iso` e coloque sua ISO
+   original com o nome `p2is.iso`.
+8. Na aba **Persona 2**, clique em **Extrair**. Aguarde a mensagem de conclusão
+   na saída e abra `en/new/messages` na árvore lateral.
+9. Abra um arquivo `.msg.tbf`. O editor visual mostra o cabeçalho no alto,
+   **Antes · original** à esquerda e **Depois · tradução** à direita.
 
 A extensão principal roda no container, conforme o modelo de [extensões de workspace](https://code.visualstudio.com/api/advanced-topics/extension-host).
 O [Dev Container](https://code.visualstudio.com/docs/devcontainers/containers) monta o projeto em `/workspaces/p2-tool`; `/lab` aponta para a pasta `lab` desse projeto.
 
-No Explorer do Windows, abra `<pasta-do-projeto>\lab\iso` e coloque sua ISO
-original como `p2is.iso`. Nada do jogo é incluído na imagem ou no repositório.
+## Editar e salvar uma tradução
 
-## Primeira extração e edição
+Se você já tem os TBFs, pule o passo de extração e abra diretamente
+`en/new/messages` na árvore **Arquivos de tradução**. A extração recusa
+sobrescrever `new/messages` existente.
 
-Na paleta, execute **Persona 2: Extrair ISO**. Se você já tem os TBFs, pule a
-extração: ela recusa sobrescrever `new/messages` existente.
-
-Clique no ícone Persona 2 na barra lateral. Navegue por `en/new/messages` e abra
-um `.msg.tbf`. O cabeçalho mostra o diretório e o nome originais; somente o
-contexto pode ser alterado. Ele deve continuar sendo um objeto JSON.
+O passo 9 já abre o editor visual. O cabeçalho mostra o diretório e o nome
+originais; somente o contexto pode ser alterado. Ele deve continuar sendo um
+objeto JSON.
 
 Cada mensagem tem original à esquerda e tradução à direita, em caixas da mesma
 altura. Ambos são editáveis. Enter cria uma quebra visual; ao salvar, o JSON a
 representa como `\n`. Aspas, barras e acentos são escapados pela serialização,
 sem precisar fazê-lo manualmente na interface. Preserve os comandos do jogo.
 
-Use **Salvar** ou Ctrl+S. Desfazer/refazer é integrado ao documento do VS Code.
+10. Edite a coluna **Depois · tradução** e use **Salvar** ou `Ctrl+S`.
+   Desfazer/refazer é integrado ao documento do VS Code.
 Para inspecionar o arquivo, use **Reabrir editor com → Editor de texto**. Um TBF
 com JSON inválido mostra um erro e pode ser corrigido no editor de texto.
 
-**Compilar** gera `lab/p2is-translated.iso`, usando o PT-BR por padrão. Os logs
+11. Clique em **Compilar** para gerar `lab/p2is-translated.iso`, usando o PT-BR
+   por padrão. Os logs
 aparecem em **Saída → Persona 2**. O código da ferramenta vem da imagem: após
 atualizá-lo, use **Dev Containers: Rebuild Container**.
 
-## PPSSPP do Windows e executar ao salvar
+## Executar o jogo
 
 Uma extensão dentro do container não pode iniciar diretamente um executável do
 Windows. Por isso, há um segundo VSIX pequeno, **PPSSPP Host**, que roda no host
 do VS Code e somente gerencia o emulador. Extração e compilação ficam no container.
 
-1. A preparação também copia os VSIX para `lab/tools` como backup. O
-   **PPSSPP Host** é instalado automaticamente pelo comando pós-conexão; ele
-   permanece como extensão de interface do VS Code para acessar o Windows.
-2. Execute **Persona 2: Configurar PPSSPP no Windows**. Informe o executável
+1. Execute **Persona 2: Configurar PPSSPP no Windows**. Informe o executável
    (por exemplo `C:\Program Files\PPSSPP\PPSSPPWindows64.exe`) e o caminho
    absoluto de **`lab\p2is-translated.iso` desse projeto no Windows**.
-3. Use **Compilar e executar**. Depois, ative **Executar ao salvar** no cabeçalho.
+2. Use **Compilar e executar**. Depois, ative **Executar ao salvar** no cabeçalho
+   se quiser recompilar e abrir o jogo automaticamente depois de cada salvamento.
 
 O PPSSPP iniciado pela extensão é encerrado antes de recompilar e reiniciado
 com a ISO nova somente após sucesso. Salve o progresso do jogo antes de editar.

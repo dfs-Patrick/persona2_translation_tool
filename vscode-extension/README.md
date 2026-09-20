@@ -15,9 +15,12 @@ Execute a extensão no **Dev Container** do repositório.
 - Extrair, compilar, compilar e executar, saída de comandos e executar ao salvar.
 
 Ao abrir o projeto no Dev Container, os dois VSIX versionados são instalados
-automaticamente pelo comando pós-conexão. Configure o caminho do emulador e da
-ISO para usar o PPSSPP Host. O editor chama Node diretamente no container; o
-componente de interface abre somente o emulador.
+automaticamente pelo comando pós-conexão. Não instale extensões manualmente.
+Depois da instalação, abra a aba **Persona 2**, coloque `p2is.iso` em
+`lab/iso`, clique em **Extrair**, abra `en/new/messages` e edite um `.msg.tbf`.
+Configure o caminho do emulador e da ISO para usar o PPSSPP Host. O editor chama
+Node diretamente no container; o componente de interface abre somente o
+emulador.
 Nenhum comando PowerShell é usado pela extensão.
 
 A fila agrupa salvamentos consecutivos e nunca executa dois rebuilds da mesma
