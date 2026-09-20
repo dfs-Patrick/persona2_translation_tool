@@ -20,3 +20,6 @@ dist
 *.[cC][pP][kK]
 *.[gG][iI][mM]
 *.[tT][bB][fF]
+*.vsix
+!vscode-extension/p2-tbf-editor.vsix
+!vscode-ppsspp-host/p2-ppsspp-host.vsix

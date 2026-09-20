@@ -1,0 +1,153 @@
+{
+  "name": "p2-tbf-editor",
+  "displayName": "Persona 2 — Editor TBF",
+  "description": "Editor paralelo de tradução TBF e comandos da ferramenta no Dev Container.",
+  "version": "0.1.0",
+  "publisher": "dfs-Patrick",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dfs-Patrick/persona2_translation_tool"
+  },
+  "main": "./extension.js",
+  "extensionKind": [
+    "workspace"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": false
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "package": "vsce package --no-dependencies --allow-missing-repository --skip-license -o p2-tbf-editor.vsix"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "3.6.2"
+  },
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "p2.tbf",
+        "displayName": "Editor de tradução TBF",
+        "selector": [
+          {
+            "filenamePattern": "*.tbf"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "p2.refresh",
+        "title": "Atualizar arquivos",
+        "category": "Persona 2",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "p2.extract",
+        "title": "Extrair ISO",
+        "category": "Persona 2"
+      },
+      {
+        "command": "p2.rebuild",
+        "title": "Compilar ISO",
+        "category": "Persona 2"
+      },
+      {
+        "command": "p2.toggleOnSave",
+        "title": "Alternar execução ao salvar",
+        "category": "Persona 2"
+      },
+      {
+        "command": "p2.logs",
+        "title": "Mostrar saída",
+        "category": "Persona 2"
+      },
+      {
+        "command": "p2.rebuildAndRun",
+        "title": "Compilar e executar",
+        "category": "Persona 2"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "p2",
+          "title": "Persona 2",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "p2": [
+        {
+          "id": "p2.files",
+          "name": "Arquivos de tradução"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "p2.files",
+        "contents": "Abra a pasta do projeto no Dev Container.\nColoque sua ISO em lab/iso/p2is.iso.\n[Extrair ISO](command:p2.extract)",
+        "when": "view == p2.files"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "p2.refresh",
+          "when": "view == p2.files",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Persona 2",
+      "properties": {
+        "p2.translationDirectory": {
+          "type": "string",
+          "default": "lab/translation",
+          "description": "Diretório exibido na árvore, relativo à raiz do projeto."
+        },
+        "p2.translationRoot": {
+          "type": "string",
+          "default": "lab/translation/en",
+          "description": "Tradução usada no rebuild."
+        },
+        "p2.cliPath": {
+          "type": "string",
+          "default": "/opt/p2-tool/dist/cli/mod.js",
+          "description": "CLI compilada dentro do container."
+        },
+        "p2.font": {
+          "type": "string",
+          "default": "",
+          "description": "Vazio usa PT-BR padrão. Use original para desativar."
+        },
+        "p2.saveDelay": {
+          "type": "number",
+          "default": 700,
+          "minimum": 100,
+          "description": "Espera para agrupar salvamentos, em milissegundos."
+        },
+        "p2.runOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Compilar e abrir no PPSSPP ao salvar. Requer a extensão PPSSPP Host no Windows."
+        }
+      }
+    }
+  }
+}

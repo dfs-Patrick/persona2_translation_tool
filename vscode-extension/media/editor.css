@@ -1,0 +1,23 @@
+:root { color-scheme: light dark; }
+body { margin: 0; padding: 12px 16px; color: var(--vscode-editor-foreground); background: var(--vscode-editor-background); font-family: var(--vscode-font-family); }
+header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); gap: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--vscode-panel-border); }
+.metadata { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; }
+h1 { grid-column: 1 / -1; margin: 0; font-size: 16px; font-weight: 600; }
+h2 { font-size: 14px; font-weight: 600; }
+label { display: block; min-width: 0; font-size: 12px; }
+.metadata label { margin: 0; color: var(--vscode-descriptionForeground); }
+.metadata label:last-child { grid-column: 1 / -1; }
+input:not([type=checkbox]), textarea { display: block; box-sizing: border-box; width: 100%; margin-top: 3px; padding: 6px 8px; color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, transparent); border-radius: 3px; font: 13px/18px var(--vscode-editor-font-family, monospace); }
+input[readonly] { color: var(--vscode-descriptionForeground); }
+textarea { resize: none; overflow-y: auto; }
+textarea:focus, input:focus, button:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: 1px; }
+nav { display: flex; flex-wrap: wrap; align-content: start; gap: 8px; padding-top: 4px; }
+button { border: 0; border-radius: 3px; padding: 6px 10px; color: var(--vscode-button-foreground); background: var(--vscode-button-background); cursor: pointer; }
+button:hover { background: var(--vscode-button-hoverBackground); }
+.toggle { display: flex; align-items: center; width: 100%; gap: 6px; margin: 10px 0; }
+#status { display: block; width: 100%; color: var(--vscode-descriptionForeground); font-size: 12px; }
+.columns, .message-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.message-row { margin-bottom: 18px; }
+.message-row label > span { color: var(--vscode-descriptionForeground); }
+#error { padding: 12px; white-space: pre-wrap; color: var(--vscode-errorForeground); border: 1px solid var(--vscode-inputValidation-errorBorder); }
+@media (max-width: 700px) { body { padding: 12px; } header { grid-template-columns: 1fr; } .metadata { grid-template-columns: 1fr; } .metadata label:last-child { grid-column: auto; } .columns, .message-row { gap: 10px; } }

@@ -1,0 +1,29 @@
+{
+  "name": "p2-ppsspp-host",
+  "displayName": "Persona 2 — PPSSPP Host",
+  "description": "Abre no Windows a ISO compilada pela extensão TBF no container.",
+  "version": "0.1.0",
+  "publisher": "dfs-Patrick",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "main": "./extension.js",
+  "extensionKind": ["ui"],
+  "activationEvents": ["onStartupFinished"],
+  "capabilities": { "untrustedWorkspaces": { "supported": false }, "virtualWorkspaces": false },
+  "repository": { "type": "git", "url": "https://github.com/dfs-Patrick/persona2_translation_tool" },
+  "contributes": {
+    "commands": [
+      { "command": "p2.host.configure", "title": "Configurar PPSSPP no Windows", "category": "Persona 2" },
+      { "command": "p2.host.prepare", "title": "Preparar PPSSPP para rebuild", "category": "Persona 2" },
+      { "command": "p2.host.run", "title": "Abrir ISO no Windows", "category": "Persona 2" },
+      { "command": "p2.host.stop", "title": "Fechar PPSSPP iniciado pela extensão", "category": "Persona 2" }
+    ],
+    "configuration": {
+      "title": "Persona 2 — Windows",
+      "properties": {
+        "p2Host.executable": { "type": "string", "default": "C:\\Program Files\\PPSSPP\\PPSSPPWindows64.exe", "scope": "machine", "description": "Executável do PPSSPP no Windows." },
+        "p2Host.iso": { "type": "string", "default": "", "scope": "machine", "description": "Caminho absoluto no Windows para lab/p2is-translated.iso deste projeto." }
+      }
+    }
+  }
+}
