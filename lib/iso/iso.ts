@@ -10,6 +10,7 @@ import {
   readAsStream,
   write,
   closeFile,
+  dirname,
   joinPath,
   DEFAULT_CHUNK_SIZE,
   pipeline,
@@ -121,6 +122,7 @@ export const extractFile = async (
   switch (toc.type) {
     case "file":
       {
+        await mkdir(dirname(dst));
         const fp = await openFileWrite(dst);
         console.log(
           `Extracting ${toc.name} to ${dst} (${toc.length / 1024 / 1024}mb)`
@@ -196,7 +198,13 @@ export const directoryToTOC = async (
     case "folder": {
       const children = await Promise.all(
         (await readDir(path))
-          .sort()
+          .sort((a, b) => {
+            if (name === "\x00") {
+              if (a === "UMD_DATA.BIN") return -1;
+              if (b === "UMD_DATA.BIN") return 1;
+            }
+            return a.localeCompare(b);
+          })
           .map((d) => directoryToTOC(joinPath(path, d), d))
       );
       const map: TOCFolder["children"] = {};
@@ -265,7 +273,8 @@ export const generateDirEnts = (
 export const createIso = async (
   output: FileType,
   directory: string,
-  pvd_options: Partial<StructType<typeof PVD>>
+  pvd_options: Partial<StructType<typeof PVD>>,
+  layout?: TOCEntry
 ) => {
   //sector 14 and 15 = 2048 spaces
   //16 = PVD
@@ -298,6 +307,49 @@ export const createIso = async (
     },
     false
   );
+  if (layout) {
+    const layoutEntries = new Map<string, TOCEntry>();
+    const layoutFiles = new Set<TOCEntry>();
+    const indexLayout = (ent: TOCEntry, parentPath: string) => {
+      const path = parentPath ? `${parentPath}/${ent.name}` : ent.name;
+      layoutEntries.set(path, ent);
+      if (ent.type === "folder") {
+        Object.values(ent.children).forEach((child) =>
+          indexLayout(child, path)
+        );
+      }
+    };
+    indexLayout(layout, "");
+    const assignLayout = (ent: TOCEntry, parentPath: string) => {
+      const path = parentPath ? `${parentPath}/${ent.name}` : ent.name;
+      const source = layoutEntries.get(path);
+      if (source && source.type === ent.type &&
+        (ent.type === "folder" || source.length === ent.length)) {
+        ent.lba = source.lba;
+        if (ent.type === "file") layoutFiles.add(ent);
+      }
+      if (ent.type === "folder") {
+        Object.values(ent.children).forEach((child) =>
+          assignLayout(child, path)
+        );
+      }
+    };
+    assignLayout(toc, "");
+    const maxEnd = (ent: TOCEntry): number => {
+      if (ent.type === "file") return ent.lba + Math.ceil(ent.length / 2048);
+      return Math.max(
+        ent.lba + Math.ceil(ent.length / 2048),
+        ...Object.values(ent.children).map(maxEnd)
+      );
+    };
+    currentSector = Math.max(currentSector, maxEnd(toc));
+    TOCEntry.foreachFile(toc, (ent) => {
+      if (!layoutFiles.has(ent)) {
+        ent.lba = currentSector;
+        currentSector += Math.ceil(ent.length / 2048);
+      }
+    });
+  }
   const q: [TOCEntry, TOCFolder, number, string][] = [
     [toc, toc as TOCFolder, 1, directory],
   ];

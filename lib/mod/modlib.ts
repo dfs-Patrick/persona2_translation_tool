@@ -4,6 +4,7 @@ import {
   basename,
   closeFile,
   copyFile,
+  dirname,
   exists,
   extname,
   fromTools,
@@ -44,6 +45,7 @@ import { importObj } from "../mips/objimport";
 import { insertSection } from "../elf/insert_mem_section";
 import { TOCEntry } from "../archive/common";
 import { imgFromPng } from "../img/png";
+import { exportMessageFiles, exportScriptFiles, exportTbfFiles } from "../msg/tbf";
 import {
   GimConvOptions,
   ImageFormat,
@@ -186,7 +188,8 @@ export const parseBaseInfo = async (
 };
 
 export const extractISO = async (isoPath: string, cleanDir: string) => {
-  if (!(await exists(cleanDir))) {
+  const completeMarker = joinPath(cleanDir, "UMD_DATA.BIN");
+  if (!(await exists(completeMarker))) {
     await mkdir(cleanDir);
     const iso = await openFileRead(isoPath);
     const toc = await readTOC(iso);
@@ -253,7 +256,9 @@ export const extractAll = async (
   info: FileInfo,
   iso: string,
   clean: string,
-  gameCtx: GameContext
+  gameCtx: GameContext,
+  translation?: string,
+  encodingPath?: string
 ): Promise<void> => {
   // export const extractAll = async (
   //   isoPath: string,
@@ -287,7 +292,48 @@ export const extractAll = async (
   for (const file of info.fileList!) {
     await extractImpl(file, clean);
   }
+  if (translation) {
+    const messageDump = joinPath(dirname(clean), "dumped_msg");
+    const before = joinPath(translation, "before");
+    const generated = joinPath(translation, "new");
+    await mkdir(joinPath(translation, "after"));
+    await exportMessageFiles(clean, joinPath(before, "messages"));
+    await exportScriptFiles(clean, joinPath(before, "scripts"));
+    await exportMessageFiles(clean, messageDump);
+    await exportTbfFiles(messageDump, joinPath(generated, "messages"));
+    await exportScriptFiles(messageDump, joinPath(generated, "scripts"));
+    await copyFontAssets(clean, translation, encodingPath);
+  }
   // await extractImpl(info, clean);
+};
+
+export const copyFontAssets = async (
+  clean: string,
+  translation: string,
+  encodingPath?: string
+) => {
+  const source = joinPath(
+    clean,
+    "PSP_GAME",
+    "USRDIR",
+    "pack",
+    "P2PT_ALL.cpk$",
+    "syscg.bin$"
+  );
+  const destination = joinPath(translation, "fonts", "original");
+  await mkdir(destination);
+  await mkdir(joinPath(translation, "fonts", "new"));
+  for (const entry of await readDirWithTypes(source)) {
+    if (!entry.isFile && entry.name.endsWith(".gim$")) {
+      const name = entry.name.slice(0, -5);
+      const image = joinPath(source, entry.name, "image.png");
+      if (await exists(image)) await copyFile(image, joinPath(destination, `${name}.png`));
+    }
+  }
+  if (encodingPath) {
+    await copyFile(joinPath(encodingPath, "event.json"), joinPath(destination, "event.json"));
+    await copyFile(joinPath(encodingPath, "font.json"), joinPath(destination, "font.json"));
+  }
 };
 
 export const ensureClean = async (
@@ -301,15 +347,32 @@ export const ensureClean = async (
   let arname = filename;
   let cleanDir = filename + "$";
 
-  if (!(await exists(joinPath(path, cleanDir)))) {
+  const outputDir = joinPath(path, cleanDir);
+  const outputsComplete =
+    (await exists(outputDir)) &&
+    (info.fileList === undefined ||
+      (await Promise.all(
+        info.fileList.map((file) =>
+          exists(
+            joinPath(
+              outputDir,
+              file.type == "folder"
+                ? file.path
+                : withExtension(file.path, file.type)
+            )
+          )
+        )
+      )).every(Boolean));
+
+  if (!outputsComplete) {
     console.log(`Extracting ${joinPath(path, arname)}`);
     let handler = typeLookup[info.type];
     if (handler) {
-      await mkdir(joinPath(path, cleanDir));
+      await mkdir(outputDir);
       await handler.extract(
         joinPath(path, arname),
         info,
-        joinPath(path, cleanDir),
+        outputDir,
         gameCtx
       );
     } else {

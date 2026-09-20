@@ -225,6 +225,11 @@ const argv = yargs(hideBin(process.argv))
         })
         .option("gameID", {
           type: "string",
+        })
+        .option("layout", {
+          type: "string",
+          describe: "ISO whose file layout should be preserved",
+          normalize: true,
         }),
 
     async (args) => {
@@ -240,13 +245,19 @@ const argv = yargs(hideBin(process.argv))
           cdxa: "CD-XA001",
         }
       );
+      let layout: TOCEntry | undefined;
+      if (args.layout) {
+        const layoutFile = await openFileRead(args.layout);
+        layout = await readTOC(layoutFile);
+        await closeFile(layoutFile);
+      }
       await createIso(iso, args.dir, {
         systemIdentifier: args.system,
         volumeIdentifier: args.volume,
         publisherIdentifier: args.publisher,
         applicationIdentifier: args.application,
         application: [...applicationData],
-      });
+      }, layout);
     }
   )
   .demandCommand()

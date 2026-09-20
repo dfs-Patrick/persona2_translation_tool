@@ -30,6 +30,7 @@ export interface GameContext {
   variant?: string;
   locale: Locale;
   constants: Constants;
+  strictEncoding?: boolean;
 }
 
 // let defaultConstants: Constants = {

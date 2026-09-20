@@ -6,7 +6,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eiowlta/p2_tool.git"
+    "url": "git+https://github.com/dfs-Patrick/persona2_translation_tool.git"
   },
   "files": [
     "game",

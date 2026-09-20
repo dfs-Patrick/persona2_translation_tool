@@ -6,7 +6,9 @@ import {
   joinPath,
   mkdir,
   openFileRead,
+  withExtension,
 } from "../../util/filesystem";
+import { typeLookup } from "../file_types";
 import { FileInfo, TypeHandler, needBuildLastFile } from "./common";
 import {
   addFileToCPK,
@@ -27,12 +29,22 @@ let handler: TypeHandler = {
     const cpk = await openFileRead(src);
     const toc = await readCPKTOC(cpk);
     await mkdir(dst);
-    console.log(dst);
-    console.log(await exists(dst));
     for (const entry of toc) {
       let name = info.fileList!.find((f) => f.cpkId == entry.ID)?.path;
+      const entryInfo = info.fileList!.find((f) => f.cpkId == entry.ID);
       name ??= `${entry.FileName}`;
-      await extractFile(cpk, joinPath(dst, name), entry);
+      const source = joinPath(dst, withExtension(name, entryInfo?.type ?? "unk"));
+      await extractFile(cpk, source, entry);
+
+      if (entryInfo?.fileList) {
+        const childHandler = typeLookup[entryInfo.type];
+        if (childHandler === undefined) {
+          throw new Error(`Cannot extract nested CPK type ${entryInfo.type}`);
+        }
+        const childDir = `${source}$`;
+        await mkdir(childDir);
+        await childHandler.extract(source, entryInfo, childDir, gameContext);
+      }
     }
     await closeFile(cpk);
   },

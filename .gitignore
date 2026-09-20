@@ -5,3 +5,18 @@ clean*
 build
 extract
 dist
+
+# Local game workspace: never commit extracted or translated game content.
+/lab/
+/dump/
+/translation/
+/iso/
+
+# Game images and extracted assets, even when placed outside lab/.
+*.[iI][sS][oO]
+*.[iI][sS][oO].*
+*.[cC][sS][oO]
+*.[cC][hH][dD]
+*.[cC][pP][kK]
+*.[gG][iI][mM]
+*.[tT][bB][fF]

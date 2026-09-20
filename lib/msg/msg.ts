@@ -193,6 +193,9 @@ export const messageToBin = (
             return [...v].map((a) => {
               let c = chars.utf2bin[a];
               if (c === undefined) {
+                if (ctx.strictEncoding) {
+                  throw new Error(`Character ${JSON.stringify(a)} (U+${a.codePointAt(0)!.toString(16).toUpperCase()}) missing from ${ctx.encoding} encoding in ${ctx.file}`);
+                }
                 // throw new Error(`Unknown character ${a}`);
                 c = chars.utf2bin["@"];
                 if(!unknownCharacters[a]) 
