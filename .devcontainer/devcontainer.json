@@ -6,6 +6,6 @@
   "remoteUser": "root",
   "overrideCommand": false,
   "postCreateCommand": "mkdir -p lab/iso lab/tools && cp /opt/p2-tool/vscode/*.vsix lab/tools/",
-  "postAttachCommand": "code --install-extension /opt/p2-tool/vscode/p2-tbf-editor.vsix --force; code --install-extension /opt/p2-tool/vscode/p2-ppsspp-host.vsix --force",
+  "postAttachCommand": "bash -lc 'set -e; code --install-extension /opt/p2-tool/vscode/p2-tbf-editor.vsix --force; code --list-extensions | grep -qx dfs-Patrick.p2-tbf-editor'",
   "customizations": { "vscode": { "settings": { "files.associations": { "*.tbf": "json" } } } }
 }

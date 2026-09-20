@@ -2,8 +2,10 @@
 
 ## Instalação e primeiro uso
 
-Siga esta ordem uma única vez. Não instale os VSIX manualmente: o Dev Container
-instala automaticamente o editor TBF e o PPSSPP Host ao terminar a conexão.
+Siga esta ordem uma única vez. O Dev Container instala automaticamente o Editor
+TBF no ambiente remoto. O PPSSPP Host é instalado no VS Code do Windows quando
+você for usar **Compilar e executar**, porque somente o VS Code local consegue
+iniciar o PPSSPP do Windows.
 
 1. Instale o **Docker Desktop** com containers Linux e backend WSL 2.
 2. Instale o **VS Code** e a extensão Microsoft **Dev Containers**
@@ -14,9 +16,11 @@ instala automaticamente o editor TBF e o PPSSPP Host ao terminar a conexão.
    aguarde a construção terminar. Na primeira vez, isso compila a ferramenta e
    gera os dois VSIX dentro da imagem.
 5. Aguarde o aviso de conexão concluída. O comando pós-conexão copia os VSIX
-   para `lab/tools` e instala automaticamente **Persona 2 — Editor TBF** e
-   **Persona 2 — PPSSPP Host**. Se o VS Code pedir para recarregar, escolha
-   **Reload Window**. A barra inferior deve mostrar o container.
+   para `lab/tools` e instala automaticamente **Persona 2 — Editor TBF** no
+   container. Se o VS Code pedir para recarregar, escolha **Reload Window**. A
+   barra inferior deve mostrar o container.
+   Se o projeto já estava aberto antes desta configuração, execute **Dev
+   Containers: Rebuild Container** uma vez.
 6. Abra a aba **Persona 2** na barra de atividades. Ela mostra a árvore
    **Arquivos de tradução**. Se a árvore estiver vazia, ainda não houve extração.
 7. No Explorer do Windows, abra `<pasta-do-projeto>\lab\iso` e coloque sua ISO
@@ -60,10 +64,12 @@ Uma extensão dentro do container não pode iniciar diretamente um executável d
 Windows. Por isso, há um segundo VSIX pequeno, **PPSSPP Host**, que roda no host
 do VS Code e somente gerencia o emulador. Extração e compilação ficam no container.
 
-1. Execute **Persona 2: Configurar PPSSPP no Windows**. Informe o executável
+1. Abra a pasta `lab/tools` no Explorer do Windows e dê duplo clique em
+   `p2-ppsspp-host.vsix`. O VS Code local instalará o **Persona 2 — PPSSPP Host**.
+2. Execute **Persona 2: Configurar PPSSPP no Windows**. Informe o executável
    (por exemplo `C:\Program Files\PPSSPP\PPSSPPWindows64.exe`) e o caminho
    absoluto de **`lab\p2is-translated.iso` desse projeto no Windows**.
-2. Use **Compilar e executar**. Depois, ative **Executar ao salvar** no cabeçalho
+3. Use **Compilar e executar**. Depois, ative **Executar ao salvar** no cabeçalho
    se quiser recompilar e abrir o jogo automaticamente depois de cada salvamento.
 
 O PPSSPP iniciado pela extensão é encerrado antes de recompilar e reiniciado

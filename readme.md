@@ -49,9 +49,15 @@ Depois que a instalação terminar:
 2. Escolha **Dev Containers: Reopen in Container**.
 3. Aguarde. Na primeira vez pode levar alguns minutos.
 4. Quando o VS Code perguntar se deve recarregar, escolha **Reload Window**.
+  Se o projeto já estava aberto antes desta configuração, execute **Dev
+  Containers: Rebuild Container** uma vez.
 
-O projeto instala automaticamente **Persona 2 — Editor TBF** e **Persona 2 —
-PPSSPP Host**. Não procure nem instale esses dois itens manualmente.
+O projeto instala automaticamente **Persona 2 — Editor TBF** no VS Code do
+container. O **PPSSPP Host** precisa ficar no VS Code do Windows, porque é ele
+que consegue iniciar um programa do Windows; ele fica disponível em
+`lab/tools/p2-ppsspp-host.vsix` para a instalação local quando você for testar
+o jogo. A aba **Persona 2** deve aparecer depois que o container terminar de
+recarregar.
 
 ### 4. Coloque sua ISO
 

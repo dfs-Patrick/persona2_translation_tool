@@ -1,9 +1,9 @@
 # Persona 2 — PPSSPP Host
 
-No fluxo com Dev Container, este VSIX é instalado automaticamente pelo comando
-pós-conexão. A extensão TBF principal fica no Dev Container e executa a
-ferramenta em Linux. Este componente local somente inicia e encerra o PPSSPP,
-sem PowerShell, rede ou servidores HTTP.
+Este VSIX deve ser instalado no VS Code local do Windows, a partir de
+`lab/tools/p2-ppsspp-host.vsix`. A extensão TBF principal fica no Dev Container
+e executa a ferramenta em Linux. Este componente local somente inicia e encerra
+o PPSSPP, sem PowerShell, rede ou servidores HTTP.
 
 Execute **Persona 2: Configurar PPSSPP no Windows** e informe o executável e o
 caminho Windows para `lab/p2is-translated.iso` do projeto aberto. Ajuste esse
