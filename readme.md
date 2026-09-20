@@ -1,87 +1,126 @@
-# Persona 2 Translation Tool
+# Tradução de Persona 2
 
-Ferramenta para extrair, traduzir e reconstruir a versão americana de **Persona
-2: Innocent Sin** para PSP.
+Este projeto permite traduzir **Persona 2: Innocent Sin** para PSP. Você não
+precisa entender programação para participar como voluntário.
 
-Este projeto não inclui o jogo. Você precisa fornecer sua própria ISO original.
+O jogo não acompanha o projeto. Para começar, você precisa ter uma ISO original
+de **Persona 2: Innocent Sin US** obtida da sua própria cópia.
 
-## Comece aqui
+## Instalação para iniciantes no Windows
 
-O caminho recomendado para quem está começando no Windows é usar o VS Code com
-Docker. A instalação prepara a ferramenta e instala automaticamente as duas
-extensões do projeto.
+Você não precisa criar uma conta, instalar Git ou usar o terminal.
 
-1. Instale o [Docker Desktop para Windows](https://docs.docker.com/desktop/setup/install/windows-install/),
-   com backend WSL 2 e containers Linux.
-2. Instale o [VS Code](https://code.visualstudio.com/) e a extensão
-   [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
-3. Instale o [PPSSPP para Windows](https://www.ppsspp.org/docs/getting-started/introduction/)
-   para testar a ISO traduzida.
-4. Clone este repositório e abra a pasta no VS Code:
+### 1. Instale os programas
 
-   ```powershell
-   git clone https://github.com/dfs-Patrick/persona2_translation_tool.git
-   cd persona2_translation_tool
-   code .
-   ```
+Abra cada link e aceite as opções recomendadas do instalador:
 
-5. Pressione `Ctrl+Shift+P` e execute **Dev Containers: Reopen in Container**.
-   Aguarde a primeira construção terminar. O container compila a ferramenta,
-   prepara as extensões e instala automaticamente **Persona 2 — Editor TBF** e
-   **Persona 2 — PPSSPP Host**.
-6. No Explorer do Windows, abra a pasta `lab/iso` dentro do projeto e copie sua
-   ISO original para lá com o nome `p2is.iso`.
-7. Na barra de atividades do VS Code, abra **Persona 2** e clique em
-   **Extrair**.
-8. Na árvore **Arquivos de tradução**, abra `en/new/messages` e depois um
-   arquivo `.msg.tbf`.
-9. Traduza na coluna **Depois · tradução** e pressione `Ctrl+S` ou clique em
-   **Salvar**. Use **Compilar** para gerar `lab/p2is-translated.iso`.
-10. Execute **Persona 2: Configurar PPSSPP no Windows** uma vez, informe o
-    executável do PPSSPP e o caminho Windows da ISO gerada. Depois use
-    **Compilar e executar** para testar.
+- [Docker Desktop](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe)
+- [Visual Studio Code](https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user)
+- [PPSSPP para Windows](https://www.ppsspp.org/download/)
 
-O editor mostra o original à esquerda e a tradução à direita. Pressionar Enter
-cria uma quebra de linha real; a extensão converte isso para `\n` no arquivo
-`.tbf`. O campo `context` do cabeçalho pode ser alterado, mas os demais dados do
-cabeçalho devem permanecer intactos.
+O instalador do Docker prepara automaticamente os componentes necessários do
+Windows. Se ele pedir para reiniciar o computador, reinicie antes de continuar.
+Depois de reiniciar, abra o Docker Desktop e espere até ele indicar que está
+pronto.
 
-## Arquivos importantes
+### 2. Baixe o projeto
 
-- `lab/iso/p2is.iso`: ISO original fornecida por você.
-- `lab/translation/en/new/messages/`: TBFs que você traduz.
-- `lab/p2is-translated.iso`: ISO reconstruída para testar no PPSSPP.
-- `lab/tools/`: cópias dos VSIX gerados pelo container.
+1. Abra a página do projeto no GitHub:
+   <https://github.com/dfs-Patrick/persona2_translation_tool>
+2. Clique no botão verde **Code**.
+3. Clique em **Download ZIP**.
+4. Abra o arquivo baixado e extraia a pasta para um local fácil, como
+   `Documentos`.
+5. Abra o **Visual Studio Code** e escolha **File → Open Folder**.
+6. Selecione a pasta extraída do projeto.
 
-Tudo dentro de `lab/` é local e ignorado pelo Git. Não envie ISOs, arquivos
-extraídos ou traduções para o repositório.
+Não é necessário fazer login no GitHub.
 
-## Quando precisar de mais detalhes
+### 3. Instale o suporte do projeto
 
-- [Guia visual do editor no VS Code](doc/vscode-editor.md): instalação,
-  extração, edição, compilação, PPSSPP e execução ao salvar.
-- [Windows, Docker e PowerShell](doc/windows-docker.md): uso do launcher pelo
-  terminal e diagnóstico do ambiente Docker.
-- [README do editor TBF](vscode-extension/README.md): comportamento do editor e
-  desenvolvimento da extensão.
-- [README do PPSSPP Host](vscode-ppsspp-host/README.md): integração com o
-  emulador no Windows.
+Ao abrir a pasta, o VS Code mostrará uma recomendação para instalar **Dev
+Containers**. Clique em **Install**. Essa é a única extensão externa que você
+precisa instalar manualmente, porque ela é o recurso do VS Code que permite
+abrir o projeto dentro do ambiente preparado.
 
-## Linux ou WSL
+Depois que a instalação terminar:
 
-Também é possível usar a CLI diretamente com Node.js e npm instalados:
+1. Pressione `Ctrl+Shift+P`.
+2. Escolha **Dev Containers: Reopen in Container**.
+3. Aguarde. Na primeira vez pode levar alguns minutos.
+4. Quando o VS Code perguntar se deve recarregar, escolha **Reload Window**.
 
-```bash
-npm ci
-npx tsc
-node dist/cli/mod.js --help
+O projeto instala automaticamente **Persona 2 — Editor TBF** e **Persona 2 —
+PPSSPP Host**. Não procure nem instale esses dois itens manualmente.
+
+### 4. Coloque sua ISO
+
+1. Abra a pasta do projeto no Explorador de Arquivos.
+2. Entre em `lab` e depois em `iso`.
+3. Copie sua ISO original para essa pasta.
+4. Renomeie o arquivo para `p2is.iso`.
+
+O caminho deve terminar assim:
+
+```text
+pasta-do-projeto\lab\iso\p2is.iso
 ```
 
-Para esse fluxo, siga as seções equivalentes no [guia Windows/Docker](doc/windows-docker.md)
-ou consulte a ajuda da CLI. O perfil de fonte `pt-br` é aplicado por padrão ao
-reconstruir IS US.
+### 5. Extraia os arquivos para tradução
 
-## Origem do projeto
+1. No VS Code conectado ao container, clique no ícone **Persona 2** na barra
+   lateral.
+2. No painel **Arquivos de tradução**, clique em **Extrair**.
+3. Aguarde a mensagem de conclusão na saída do VS Code.
+4. Abra as pastas `en`, `new`, `messages`.
+5. Abra um arquivo com final `.msg.tbf`.
 
-Este trabalho é um fork do [p2_tool](https://github.com/eiowlta/p2_tool), de
+Se o painel estiver vazio, confira se a ISO está no local indicado no passo 4.
+
+### 6. Faça sua primeira tradução
+
+O editor mostra:
+
+- **Antes · original**: texto original do jogo, à esquerda.
+- **Depois · tradução**: texto que será usado no jogo, à direita.
+
+Digite a tradução na coluna da direita e clique em **Salvar** ou pressione
+`Ctrl+S`. Pressione Enter normalmente para criar uma nova linha. O editor cuida
+da conversão para o formato do arquivo.
+
+### 7. Gere a ISO traduzida
+
+Clique em **Compilar** no alto do editor. Ao terminar, a ISO estará em:
+
+```text
+pasta-do-projeto\lab\p2is-translated.iso
+```
+
+Para testar no jogo:
+
+1. Abra a Paleta de Comandos com `Ctrl+Shift+P`.
+2. Execute **Persona 2: Configurar PPSSPP no Windows**.
+3. Escolha o programa PPSSPP instalado e informe o caminho da ISO traduzida.
+4. Volte ao editor e clique em **Compilar e executar**.
+
+Depois da primeira configuração, você pode marcar **Executar ao salvar** para
+recompilar e abrir o jogo automaticamente.
+
+## Ajuda para situações específicas
+
+- [Guia visual completo do VS Code](doc/vscode-editor.md): detalhes da tela,
+  edição, salvamento, compilação e execução.
+- [Uso com Docker e PowerShell](doc/windows-docker.md): instalação alternativa
+  e comandos para quem prefere controlar o processo pelo terminal.
+- [Editor TBF](vscode-extension/README.md): funcionamento e desenvolvimento da
+  extensão de tradução.
+- [PPSSPP Host](vscode-ppsspp-host/README.md): integração avançada com o
+  emulador do Windows.
+
+A pasta `lab` contém sua ISO, arquivos extraídos e traduções locais. Ela não é
+enviada ao Git nem compartilhada pelo projeto.
+
+## Origem
+
+Este projeto é baseado no [p2_tool](https://github.com/eiowlta/p2_tool), de
 eiowlta. Os créditos e o histórico do projeto original são preservados.
