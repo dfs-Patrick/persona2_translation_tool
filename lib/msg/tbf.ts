@@ -92,6 +92,46 @@ export const splitMessages = (text: string): TbfTranslation[] => {
   return translations;
 };
 
+const afterColors: Record<number, string> = {
+  0x11: "white1", 0x12: "white", 0x13: "lime2", 0x14: "yellow",
+  0x15: "teal", 0x16: "fuschia", 0x17: "light_gray", 0x18: "green",
+  0x19: "black", 0x20: "blue", 0x21: "pink", 0x32: "name_green",
+};
+
+const afterSymbols: Record<number, string> = {
+  1: "unk1", 2: "unk2", 3: "unk3", 4: "unk4", 5: "unk5", 6: "unk6",
+  7: "heart", 8: "unk8", 9: "unk9", 10: "unka", 11: "unkb",
+  12: "unkc", 13: "unkd", 14: "unke", 15: "unkf", 16: "unk10",
+  17: "unk11", 18: "unk12", 19: "lquote", 20: "rqoute", 21: "unk15",
+};
+
+export const normalizeAfterText = (text: string): string => text
+  .replaceAll("[end_diag][wait]", "[wait][clear]")
+  .replaceAll("[end_diag]", "")
+  .replace(
+  /\[([0-9a-f]+)(?:\(([^\]]*)\))?\]/gi,
+  (_full, rawOpcode: string, rawArgs = "") => {
+    const opcode = Number.parseInt(rawOpcode, 16);
+    const args = rawArgs.split(",").map((value: string) => value.trim()).filter(Boolean);
+    if (opcode === 0x31 && args.length === 3 && args[0] === "0" && args[1] === "0") {
+      return afterColors[Number(args[2]) + 0x10] ? `[color(${afterColors[Number(args[2]) + 0x10]})]` : "";
+    }
+    if (opcode === 0x1d && args.length === 1 && afterColors[Number(args[0])]) {
+      return `[color(${afterColors[Number(args[0])]})]`;
+    }
+    if (opcode === 0x32 && args.length === 3 && args[0] === "0" && args[1] === "0") {
+      return afterSymbols[Number(args[2])] ? `[sym(${afterSymbols[Number(args[2])]})]` : "";
+    }
+    const names: Record<number, string> = {
+      0x05: "delay", 0x06: "wait", 0x07: "sync", 0x08: "choice",
+      0x09: "end_choice", 0x12: "tatsu", 0x13: "tatsuya", 0x14: "suou",
+      0x1f: "dbl_tab", 0x20: "space", 0x21: "half_tab",
+    };
+    if (names[opcode]) return args.length ? `[${names[opcode]}(${args.join(", ")})]` : `[${names[opcode]}]`;
+    return "";
+  },
+  );
+
 const splitScript = (text: string): TbfTranslation[] => {
   const translations: TbfTranslation[] = [];
   const block = /\/\*+\n([\s\S]*?)\n\*+\//g;
@@ -174,7 +214,7 @@ export const applyAfterTranslations = async (translationRoot: string): Promise<n
       const matches = targets.filter(target => afterTarget(target.file, id, script));
       if (matches.length !== 1) continue;
       const target = matches[0].file;
-      const byKey = new Map(translated.map(item => [item.info.msg_key, item.text.before]));
+      const byKey = new Map(translated.map(item => [item.info.msg_key, normalizeAfterText(item.text.before)]));
       for (const item of target.translation) {
         const text = byKey.get(item.info.msg_key);
         if (text !== undefined) { item.text.after = text; applied++; }

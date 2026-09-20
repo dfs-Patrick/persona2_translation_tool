@@ -9,7 +9,7 @@ import { loadEventEncoding, loadFontEncoding, EncodingScheme, loadLocale } from 
 import { fromTools } from "../lib/util/filesystem";
 import { messageToBin, parseMessage } from "../lib/msg/msg";
 import { Game } from "../lib/util/context";
-import { splitMessages, validateTbfEncoding } from "../lib/msg/tbf";
+import { normalizeAfterText, splitMessages, validateTbfEncoding } from "../lib/msg/tbf";
 
 const prefix = [0x35, 0x36, 1, 5, 0x112b, 0x5ea, 0xe31, 0x9cf,
   0x9ec, 0x8dc, 0x115a, 0xa35, 0xeaa, 0x823, 0xa9c, 0x120,
@@ -32,6 +32,11 @@ test("message after files split on keys with ret terminators", () => {
   assert.equal(messages[0].text.before, "Primeira linha");
   assert.equal(messages[0].info.after_msg, "[end_diag][wait][ret]\n");
   assert.equal(messages[1].text.before, "Segunda");
+});
+
+test("after opcodes become TBF commands", () => {
+  assert.equal(normalizeAfterText("[31(0, 0, 34)]Nome[end_diag][wait][color(name_green)]Texto"),
+    "[color(name_green)]Nome[wait][clear][color(name_green)]Texto");
 });
 
 test("default uses the bundled PT-BR profile even with a project-local copy", async () => {
