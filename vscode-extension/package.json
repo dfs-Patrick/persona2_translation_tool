@@ -35,6 +35,22 @@
     "@vscode/vsce": "3.6.2"
   },
   "contributes": {
+    "languages": [
+      {
+        "id": "tbf",
+        "aliases": ["TBF", "tbf"],
+        "extensions": [".tbf"],
+        "configuration": "./media/tbf-language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tbf",
+        "scopeName": "source.tbf",
+        "path": "./media/tbf.tmLanguage.json",
+        "embeddedLanguages": { "source.json": "json" }
+      }
+    ],
     "customEditors": [
       {
         "viewType": "p2.tbf",

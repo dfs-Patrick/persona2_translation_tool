@@ -49,6 +49,10 @@ altura. Ambos são editáveis. Enter cria uma quebra visual; ao salvar, o JSON a
 representa como `\n`. Aspas, barras e acentos são escapados pela serialização,
 sem precisar fazê-lo manualmente na interface. Preserve os comandos do jogo.
 
+Arquivos `.tbf` podem ser localizados pelo `Ctrl+Shift+F`, inclusive quando
+estão dentro de `lab/`. O projeto associa `.tbf` à linguagem TBF, mantendo o
+JSON válido e destacando comandos entre colchetes e variáveis usadas nos textos.
+
 10. Edite a coluna **Depois · tradução** e use **Salvar** ou `Ctrl+S`.
    Desfazer/refazer é integrado ao documento do VS Code.
 Para inspecionar o arquivo, use **Reabrir editor com → Editor de texto**. Um TBF

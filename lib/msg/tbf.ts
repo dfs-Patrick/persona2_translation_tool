@@ -1,12 +1,14 @@
 import {
   basename,
   dirname,
+  exists,
   joinPath,
   mkdir,
   readDirWithTypes,
   readTextFile,
   writeTextFile,
 } from "../util/filesystem";
+import { rm } from "fs/promises";
 import { relative } from "path";
 import { GameContext } from "../util/context";
 import { EncodingScheme } from "../util/encoding";
@@ -133,6 +135,66 @@ const renderMessages = (file: TbfFile): string =>
       return `${entry.info.before_msg}\n${text}${entry.info.after_msg}`;
     })
     .join("\n");
+
+const afterId = (name: string, extension: string): string | undefined => {
+  const match = name.match(new RegExp(`^(e[0-9a-f]+)\\${extension}$`, "i"));
+  return match?.[1].toLowerCase();
+};
+
+const afterTbfFiles = async (translationRoot: string): Promise<string[]> => {
+  const files = await walk(joinPath(translationRoot, "new", "messages"));
+  return files.filter(source => source.endsWith(".tbf"));
+};
+
+const afterTarget = (file: TbfFile, id: string, script: boolean): boolean =>
+  file.header.originalDirectory.toLowerCase().includes(`/${id}.bin$`) &&
+  (script ? file.header.originalFilename === "script.ef" : file.header.originalFilename === "script.msg");
+
+export const applyAfterTranslations = async (translationRoot: string): Promise<number> => {
+  const files = await afterTbfFiles(translationRoot);
+  const targets = await Promise.all(files.map(async source => ({
+    source,
+    file: parseTbf(await readTextFile(source)),
+  })));
+  let applied = 0;
+
+  for (const directory of ["msg", "scripts"]) {
+    const inputRoot = joinPath(translationRoot, "after", directory);
+    if (!(await exists(inputRoot))) continue;
+    const entries = await readDirWithTypes(inputRoot);
+    for (const entry of entries) {
+      if (!entry.isFile) continue;
+      const script = directory === "scripts";
+      const extension = script ? ".script" : ".msg";
+      const id = afterId(entry.name, extension);
+      if (!id) continue;
+      const source = joinPath(inputRoot, entry.name);
+      const translated = script
+        ? splitScript(await readTextFile(source))
+        : splitMessages(await readTextFile(source));
+      const matches = targets.filter(target => afterTarget(target.file, id, script));
+      if (matches.length !== 1) continue;
+      const target = matches[0].file;
+      const byKey = new Map(translated.map(item => [item.info.msg_key, item.text.before]));
+      for (const item of target.translation) {
+        const text = byKey.get(item.info.msg_key);
+        if (text !== undefined) { item.text.after = text; applied++; }
+      }
+      await writeTextFile(matches[0].source, writeTbf(target));
+    }
+  }
+  return applied;
+};
+
+export const clearGeneratedAfter = async (translationRoot: string): Promise<void> => {
+  const root = joinPath(translationRoot, "after");
+  if (!(await exists(root))) return;
+  for (const entry of await readDirWithTypes(root)) {
+    if (entry.name !== "msg" && entry.name !== "scripts") {
+      await rm(joinPath(root, entry.name), { recursive: true, force: true });
+    }
+  }
+};
 
 export const parseTbf = (text: string): TbfFile =>
   JSON.parse(text) as TbfFile;

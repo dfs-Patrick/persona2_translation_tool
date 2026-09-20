@@ -1,0 +1,17 @@
+{
+  "scopeName": "source.tbf",
+  "injectionSelector": "L:string.quoted.double.json",
+  "patterns": [
+    {
+      "name": "keyword.control.tbf-command",
+      "match": "\\[(?:[A-Za-z_][A-Za-z0-9_]*)(?:\\([^\\]\\r\\n]*\\))?\\]"
+    },
+    {
+      "name": "variable.language.tbf",
+      "match": "(?<![A-Za-z0-9_])(?:\\[[0-9]+\\]|\\$[A-Za-z_][A-Za-z0-9_]*|\\{[A-Za-z_][A-Za-z0-9_]*\\})(?![A-Za-z0-9_])"
+    },
+    {
+      "include": "source.json"
+    }
+  ]
+}

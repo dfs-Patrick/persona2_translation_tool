@@ -61,7 +61,7 @@ import { VFS } from "../lib/mod/vfs";
 import { createIso, readTOC } from "../lib/iso/iso";
 import { CDXAApplicationData } from "../lib/iso/iso_types";
 import { toDataView, toStructBuffer } from "../lib/util/structlib";
-import { exportScriptFiles, exportTbfFiles, importTbfFiles, validateTbfEncoding } from "../lib/msg/tbf";
+import { applyAfterTranslations, clearGeneratedAfter, exportScriptFiles, exportTbfFiles, importTbfFiles, validateTbfEncoding } from "../lib/msg/tbf";
 import { loadFontProfile, patchEventFontTable, patchFontMetrics, prepareFontImages, resolveFontProfile } from "../lib/mod/font_profile";
 import { decrypt_eboot } from "../lib/decrypt/eboot";
 
@@ -348,10 +348,12 @@ const args = yargs(hideBin(process.argv))
           ...gameContextIso, locale: profile?.locale ?? originalLocale, strictEncoding: true,
         };
         await loadScriptConstants(gameContextIso);
+        const appliedAfter = await applyAfterTranslations(translationRoot);
+        if (appliedAfter) console.log(`Applied ${appliedAfter} translations from after/.`);
         await validateTbfEncoding(translationMessages, gameContextMod);
         await importTbfFiles(translationMessages, generated);
         if (translationMessages !== args.translation) {
-          await rm(joinPath(translationRoot, "after"), { recursive: true, force: true });
+          await clearGeneratedAfter(translationRoot);
           await importTbfFiles(translationMessages, joinPath(translationRoot, "after"));
         }
         if (fontProfile && profile) {

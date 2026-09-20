@@ -7,5 +7,5 @@
   "overrideCommand": false,
   "postCreateCommand": "mkdir -p lab/iso lab/tools && cp /opt/p2-tool/vscode/*.vsix lab/tools/",
   "postAttachCommand": "echo 'Persona 2 — Editor TBF disponível no container. VSIX PPSSPP Host copiado para lab/tools.'",
-  "customizations": { "vscode": { "settings": { "files.associations": { "*.tbf": "json" } } } }
+  "customizations": { "vscode": { "settings": { "files.associations": { "*.tbf": "tbf" }, "search.useIgnoreFiles": false } } }
 }

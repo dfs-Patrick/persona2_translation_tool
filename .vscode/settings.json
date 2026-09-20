@@ -1,5 +1,6 @@
 {
   "files.associations": {
-    "*.tbf": "json"
-  }
+    "*.tbf": "tbf"
+  },
+  "search.useIgnoreFiles": false
 }

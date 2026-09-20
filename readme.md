@@ -97,6 +97,13 @@ Digite a tradução na coluna da direita e clique em **Salvar** ou pressione
 `Ctrl+S`. Pressione Enter normalmente para criar uma nova linha. O editor cuida
 da conversão para o formato do arquivo.
 
+Quando já existirem arquivos traduzidos em `lab/translation/en/after/msg`, o
+rebuild reconhece arquivos como `e0000.msg` pelo identificador do diretório
+`event.bin/e0000.bin` e preenche automaticamente os campos `after` dos TBFs
+correspondentes. Arquivos de `after/scripts` também são reconhecidos pelo mesmo
+identificador quando contêm blocos de diálogo compatíveis com o TBF. Scripts que
+contêm apenas código de controle são preservados sem alteração.
+
 ### 7. Gere a ISO traduzida
 
 Clique em **Compilar** no alto do editor. Ao terminar, a ISO estará em:

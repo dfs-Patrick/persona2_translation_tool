@@ -39,7 +39,7 @@ COPY vscode-extension ./
 RUN npm test && npm run package
 RUN mkdir -p /extensions/remote/dfs-Patrick.p2-tbf-editor-0.1.0/media \
     && cp package.json extension.js model.js /extensions/remote/dfs-Patrick.p2-tbf-editor-0.1.0/ \
-    && cp media/editor.css media/editor.js media/icon.svg media/logo.svg /extensions/remote/dfs-Patrick.p2-tbf-editor-0.1.0/media/
+    && cp media/editor.css media/editor.js media/icon.svg media/logo.svg media/tbf.tmLanguage.json media/tbf-language-configuration.json /extensions/remote/dfs-Patrick.p2-tbf-editor-0.1.0/media/
 WORKDIR /extensions/host
 COPY vscode-ppsspp-host ./
 RUN ../editor/node_modules/.bin/vsce package --no-dependencies --skip-license -o p2-ppsspp-host.vsix
