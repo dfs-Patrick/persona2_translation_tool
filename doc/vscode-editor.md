@@ -2,8 +2,8 @@
 
 ## Instalação e primeiro uso
 
-Siga esta ordem uma única vez. O Dev Container instala automaticamente o Editor
-TBF no ambiente remoto. O PPSSPP Host é instalado no VS Code do Windows quando
+Siga esta ordem uma única vez. O Editor TBF já vem dentro da imagem do Dev
+Container e aparece assim que o VS Code conecta. O PPSSPP Host é instalado no VS Code do Windows quando
 você for usar **Compilar e executar**, porque somente o VS Code local consegue
 iniciar o PPSSPP do Windows.
 
@@ -16,11 +16,10 @@ iniciar o PPSSPP do Windows.
    aguarde a construção terminar. Na primeira vez, isso compila a ferramenta e
    gera os dois VSIX dentro da imagem.
 5. Aguarde o aviso de conexão concluída. O comando pós-conexão copia os VSIX
-   para `lab/tools` e instala automaticamente **Persona 2 — Editor TBF** no
-   container. Se o VS Code pedir para recarregar, escolha **Reload Window**. A
-   barra inferior deve mostrar o container.
+   para `lab/tools`; o **Persona 2 — Editor TBF** já veio na imagem e não
+   precisa de instalação ou recarga. A barra inferior deve mostrar o container.
    Se o projeto já estava aberto antes desta configuração, execute **Dev
-   Containers: Rebuild Container** uma vez.
+   Containers: Rebuild Container** uma vez para atualizar a imagem.
 6. Abra a aba **Persona 2** na barra de atividades. Ela mostra a árvore
    **Arquivos de tradução**. Se a árvore estiver vazia, ainda não houve extração.
 7. No Explorer do Windows, abra `<pasta-do-projeto>\lab\iso` e coloque sua ISO

@@ -52,8 +52,9 @@ Depois que a instalação terminar:
   Se o projeto já estava aberto antes desta configuração, execute **Dev
   Containers: Rebuild Container** uma vez.
 
-O projeto instala automaticamente **Persona 2 — Editor TBF** no VS Code do
-container. O **PPSSPP Host** precisa ficar no VS Code do Windows, porque é ele
+O projeto já inclui **Persona 2 — Editor TBF** na imagem do container, então a
+aba deve aparecer assim que o VS Code conectar, sem instalar ou recarregar nada.
+O **PPSSPP Host** precisa ficar no VS Code do Windows, porque é ele
 que consegue iniciar um programa do Windows; ele fica disponível em
 `lab/tools/p2-ppsspp-host.vsix` para a instalação local quando você for testar
 o jogo. A aba **Persona 2** deve aparecer depois que o container terminar de

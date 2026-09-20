@@ -37,6 +37,9 @@ COPY vscode-extension/package.json vscode-extension/package-lock.json ./
 RUN npm ci
 COPY vscode-extension ./
 RUN npm test && npm run package
+RUN mkdir -p /extensions/remote/dfs-Patrick.p2-tbf-editor-0.1.0/media \
+    && cp package.json extension.js model.js /extensions/remote/dfs-Patrick.p2-tbf-editor-0.1.0/ \
+    && cp media/editor.css media/editor.js media/icon.svg /extensions/remote/dfs-Patrick.p2-tbf-editor-0.1.0/media/
 WORKDIR /extensions/host
 COPY vscode-ppsspp-host ./
 RUN ../editor/node_modules/.bin/vsce package --no-dependencies --skip-license -o p2-ppsspp-host.vsix
@@ -49,6 +52,7 @@ RUN pacman -Syu --noconfirm --needed git tar gzip openssh curl \
     && ln -s /workspaces/p2-tool/lab /lab
 COPY --from=extension-build /extensions/editor/p2-tbf-editor.vsix /opt/p2-tool/vscode/p2-tbf-editor.vsix
 COPY --from=extension-build /extensions/host/p2-ppsspp-host.vsix /opt/p2-tool/vscode/p2-ppsspp-host.vsix
+COPY --from=extension-build /extensions/remote/ /root/.vscode-server/extensions/
 WORKDIR /workspaces/p2-tool
 ENTRYPOINT []
 CMD ["sleep", "infinity"]

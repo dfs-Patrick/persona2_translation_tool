@@ -6,6 +6,6 @@
   "remoteUser": "root",
   "overrideCommand": false,
   "postCreateCommand": "mkdir -p lab/iso lab/tools && cp /opt/p2-tool/vscode/*.vsix lab/tools/",
-  "postAttachCommand": "bash -lc 'set -e; code --install-extension /opt/p2-tool/vscode/p2-tbf-editor.vsix --force; code --list-extensions | grep -qx dfs-Patrick.p2-tbf-editor'",
+  "postAttachCommand": "echo 'Persona 2 — Editor TBF disponível no container. VSIX PPSSPP Host copiado para lab/tools.'",
   "customizations": { "vscode": { "settings": { "files.associations": { "*.tbf": "json" } } } }
 }
