@@ -78,9 +78,13 @@ powershell -ExecutionPolicy Bypass -File .\scripts\p2-tool.ps1 -Action rebuild-r
 
 O launcher registra sua instância do PPSSPP em `lab/.ppsspp-session.json` e confere PID, horário de início e executável antes de fechá-la. Instâncias abertas manualmente não são encerradas; feche-as se estiverem mantendo a ISO em uso. Um lock impede operações simultâneas pelo launcher no mesmo projeto.
 
-## Contrato para a futura extensão
+## Extensão do VS Code
 
-A interface e o modo **run on save ainda não estão implementados**. O launcher fornece o comando que a extensão poderá executar. O fluxo previsto é:
+O editor TBF, os comandos no container e a integração com o PPSSPP estão descritos no [guia do editor](vscode-editor.md). Use esse fluxo para editar em duas colunas e executar ao salvar sem chamar o launcher PowerShell.
+
+### Referência do launcher
+
+A extensão chama a CLI diretamente no container. Para outras automações que usem este launcher no Windows, observe:
 
 1. Observar salvamentos dos TBFs editáveis e dos perfis locais, ignorando dumps, `after`, ISOs e arquivos de estado do launcher.
 2. Agrupar salvamentos próximos e executar uma única operação `rebuild-run` por vez.

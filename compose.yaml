@@ -3,6 +3,7 @@ services:
     image: persona2-translation-tool:local
     build:
       context: .
+      target: runtime
     init: true
     user: "${P2_UID:-1000}:${P2_GID:-1000}"
     working_dir: /

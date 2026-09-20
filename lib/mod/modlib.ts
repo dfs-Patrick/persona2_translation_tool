@@ -297,12 +297,19 @@ export const extractAll = async (
     const before = joinPath(translation, "before");
     const generated = joinPath(translation, "new");
     await mkdir(joinPath(translation, "after"));
+    console.log("Preparing translation: exporting original messages...");
     await exportMessageFiles(clean, joinPath(before, "messages"));
+    console.log("Preparing translation: exporting original scripts...");
     await exportScriptFiles(clean, joinPath(before, "scripts"));
+    console.log("Preparing translation: creating message workspace...");
     await exportMessageFiles(clean, messageDump);
+    console.log("Preparing translation: generating editable TBF files...");
     await exportTbfFiles(messageDump, joinPath(generated, "messages"));
+    console.log("Preparing translation: exporting reference scripts...");
     await exportScriptFiles(messageDump, joinPath(generated, "scripts"));
+    console.log("Preparing translation: copying original fonts...");
     await copyFontAssets(clean, translation, encodingPath);
+    console.log(`Extraction complete. Editable TBF files: ${joinPath(generated, "messages")}`);
   }
   // await extractImpl(info, clean);
 };

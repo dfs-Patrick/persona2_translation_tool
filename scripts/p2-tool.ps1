@@ -85,6 +85,7 @@ try {
         Invoke-ToolDocker -DockerArguments @("run", "--rm", "--no-deps", "-T", "tool", "extractAll",
             "lab/iso/p2is.iso", "-o", "lab/dump", "--translation-output", "lab/translation/en",
             "--game", "is", "--variant", "us", "--locale", "en")
+        Write-Host "Extracao concluida. Edite os TBFs em: $(Join-Path $labDir 'translation/en/new/messages')"
     } else {
         # Release the ISO file before rebuilding, including on Windows.
         Stop-OwnedEmulator

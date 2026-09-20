@@ -18,7 +18,7 @@ Mantenha os arquivos do jogo dentro de `lab/`. Não inclua esse conteúdo em com
 
 ## Requisitos e instalação
 
-No Windows, o fluxo com **Docker Desktop + PPSSPP no Windows** está descrito em [Instalação com Docker e integração com VS Code](doc/windows-docker.md). Ele dispensa Node.js no host e inclui um comando para reconstruir e abrir a ISO. A extensão e o gatilho automático ao salvar ainda serão implementados.
+No Windows, use o [editor TBF no VS Code com Dev Container](doc/vscode-editor.md) para editar as mensagens lado a lado, compilar e executar ao salvar. A extensão principal roda no container; uma extensão auxiliar local inicia o PPSSPP do Windows. O fluxo por terminal continua disponível em [Instalação com Docker](doc/windows-docker.md), sem exigir Node.js no host.
 
 Instale o **Docker Desktop** para executar a ferramenta e o **PPSSPP** separadamente para testar o jogo. O guia inclui a instalação, o clone do projeto e todos os comandos em PowerShell. A pasta `lab` fica dentro da pasta clonada: abra-a no Explorer com `explorer.exe .\lab` após o setup. Coloque sua ISO original em `lab\iso\p2is.iso`; a ISO reconstruída será `lab\p2is-translated.iso`. Dentro do container, essa mesma pasta aparece como `/lab`.
 

@@ -30,3 +30,25 @@ USER p2tool
 WORKDIR /
 ENTRYPOINT ["node", "/opt/p2-tool/dist/cli/mod.js"]
 CMD ["--help"]
+
+FROM dependencies AS extension-build
+WORKDIR /extensions/editor
+COPY vscode-extension/package.json vscode-extension/package-lock.json ./
+RUN npm ci
+COPY vscode-extension ./
+RUN npm test && npm run package
+WORKDIR /extensions/host
+COPY vscode-ppsspp-host ./
+RUN ../editor/node_modules/.bin/vsce package --no-dependencies --skip-license -o p2-ppsspp-host.vsix
+
+FROM runtime AS development
+USER root
+RUN pacman -Syu --noconfirm --needed git tar gzip openssh curl \
+    && pacman -Scc --noconfirm \
+    && rmdir /lab/iso /lab \
+    && ln -s /workspaces/p2-tool/lab /lab
+COPY --from=extension-build /extensions/editor/p2-tbf-editor.vsix /opt/p2-tool/vscode/p2-tbf-editor.vsix
+COPY --from=extension-build /extensions/host/p2-ppsspp-host.vsix /opt/p2-tool/vscode/p2-ppsspp-host.vsix
+WORKDIR /workspaces/p2-tool
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

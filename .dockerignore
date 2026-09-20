@@ -16,3 +16,10 @@
 !fonts/**
 !tests/
 !tests/**
+!vscode-extension/
+!vscode-extension/**
+!vscode-ppsspp-host/
+!vscode-ppsspp-host/**
+vscode-extension/node_modules/
+vscode-extension/*.vsix
+vscode-ppsspp-host/*.vsix
