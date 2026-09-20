@@ -62,7 +62,7 @@ import { createIso, readTOC } from "../lib/iso/iso";
 import { CDXAApplicationData } from "../lib/iso/iso_types";
 import { toDataView, toStructBuffer } from "../lib/util/structlib";
 import { exportScriptFiles, exportTbfFiles, importTbfFiles, validateTbfEncoding } from "../lib/msg/tbf";
-import { loadFontProfile, patchEventFontTable, patchFontMetrics, prepareFontImages } from "../lib/mod/font_profile";
+import { loadFontProfile, patchEventFontTable, patchFontMetrics, prepareFontImages, resolveFontProfile } from "../lib/mod/font_profile";
 import { decrypt_eboot } from "../lib/decrypt/eboot";
 
 const args = yargs(hideBin(process.argv))
@@ -318,7 +318,7 @@ const args = yargs(hideBin(process.argv))
         .option("locale", { type: "string", default: "en" })
         .option("font", {
           type: "string",
-          describe: "font profile under translation/<locale>/fonts/new",
+          describe: "font profile (default: bundled pt-br for IS US); use original to disable",
         })
         .option("game-id", { type: "string", default: "ULUS-10584" }),
     async (args) => {
@@ -332,9 +332,8 @@ const args = yargs(hideBin(process.argv))
       const translationMessages = await exists(structuredMessages)
         ? structuredMessages
         : args.translation;
-      const fontProfile = args.font
-        ? joinPath(translationRoot, "fonts", "new", args.font)
-        : undefined;
+      const selectedFont = await resolveFontProfile(translationRoot, args.font, game, args.variant);
+      const fontProfile = selectedFont.path;
       const isoName = basename(args.iso);
       const cleanBase = joinPath(work, "clean", `${isoName}$`);
       const buildPath = joinPath(work, "build", `${isoName}$`);
@@ -342,9 +341,7 @@ const args = yargs(hideBin(process.argv))
 
       try {
         const originalLocale = await loadLocale(fromTools(`game/${game}/encoding/${args.locale}`));
-        if (fontProfile && (game !== Game.IS || args.variant !== "us")) {
-          throw new Error("Font profiles currently support Innocent Sin US only");
-        }
+        console.log(`Font profile: ${selectedFont.name}${fontProfile ? ` (${fontProfile})` : ""}`);
         const profile = fontProfile ? await loadFontProfile(fontProfile, originalLocale) : undefined;
         const gameContextIso: GameContext = { game, locale: originalLocale, variant: args.variant, constants: {} };
         const gameContextMod: GameContext = {
@@ -406,7 +403,7 @@ const args = yargs(hideBin(process.argv))
           await patchFontMetrics(executable, joinPath(generated, "font-overrides"), profile.mappings);
           patchFileLoading(executable);
           await writeBinaryFile(executablePath, executable);
-          console.log(`Applied ${profile.mappings.length} event/font mappings from ${args.font}`);
+          console.log(`Applied ${profile.mappings.length} event/font mappings from ${selectedFont.name}`);
         }
         const layoutFile = await openFileRead(args.iso);
         const layout = await readTOC(layoutFile);

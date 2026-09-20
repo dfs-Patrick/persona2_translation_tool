@@ -1,0 +1,38 @@
+[
+  {
+    "target": 149,
+    "base": 261,
+    "accent": 110,
+    "accentRows": 5
+  },
+  {
+    "target": 150,
+    "base": 277,
+    "accent": 14,
+    "accentRows": 5
+  },
+  {
+    "target": 151,
+    "base": 270,
+    "accent": 112,
+    "accentRows": 5
+  },
+  {
+    "target": 152,
+    "base": 228,
+    "accent": 131,
+    "accentRows": 4
+  },
+  {
+    "target": 153,
+    "base": 244,
+    "accent": 14,
+    "accentRows": 4
+  },
+  {
+    "target": 175,
+    "base": 237,
+    "accent": 128,
+    "accentRows": 4
+  }
+]

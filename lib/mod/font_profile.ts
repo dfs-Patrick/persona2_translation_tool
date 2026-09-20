@@ -1,6 +1,27 @@
 import { PNG } from "pngjs";
 import { Locale, loadLocale } from "../util/encoding";
-import { exists, joinPath, readBinaryFile, readDir, readTextFile, writeBinaryFile } from "../util/filesystem";
+import { exists, fromTools, joinPath, readBinaryFile, readDir, readTextFile, writeBinaryFile } from "../util/filesystem";
+
+export const resolveFontProfile = async (
+  translationRoot: string, requested: string | undefined, game: string, variant: string
+): Promise<{ name: string; path?: string }> => {
+  const supported = game === "is" && variant === "us";
+  const name = requested ?? (supported ? "pt-br" : "original");
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(name)) throw new Error(`Invalid font profile name: ${name}`);
+  if (name === "original") return { name };
+  if (!supported) throw new Error("Font profiles currently support Innocent Sin US only");
+
+  const bundled = fromTools("fonts", name);
+  // An implicit default always uses the tested, bundled profile. Explicit names
+  // allow a project-local profile to override a bundled one.
+  const candidates = requested
+    ? [joinPath(translationRoot, "fonts", "new", name), bundled]
+    : [bundled];
+  for (const path of candidates) {
+    if (await exists(path)) return { name, path };
+  }
+  throw new Error(`Font profile ${JSON.stringify(name)} not found. Searched: ${candidates.join(", ")}`);
+};
 
 export interface FontMapping {
   character: string;

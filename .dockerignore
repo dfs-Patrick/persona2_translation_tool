@@ -1,0 +1,18 @@
+# Allow only source and dependencies metadata into the build context.
+# lab/, .git/, SSH keys, host node_modules and local configuration stay outside.
+**
+!Dockerfile
+!package.json
+!package-lock.json
+!tsconfig.json
+!main.ts
+!cli/
+!cli/**
+!lib/
+!lib/**
+!game/
+!game/**
+!fonts/
+!fonts/**
+!tests/
+!tests/**

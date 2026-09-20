@@ -4,8 +4,9 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PNG } from "pngjs";
-import { findEventFontTable, loadFontProfile, patchEventFontTable, patchFontMetrics, glyphBounds, prepareFontImages } from "../lib/mod/font_profile";
-import { loadEventEncoding, loadFontEncoding, EncodingScheme } from "../lib/util/encoding";
+import { findEventFontTable, loadFontProfile, patchEventFontTable, patchFontMetrics, glyphBounds, prepareFontImages, resolveFontProfile } from "../lib/mod/font_profile";
+import { loadEventEncoding, loadFontEncoding, EncodingScheme, loadLocale } from "../lib/util/encoding";
+import { fromTools } from "../lib/util/filesystem";
 import { messageToBin, parseMessage } from "../lib/msg/msg";
 import { Game } from "../lib/util/context";
 import { validateTbfEncoding } from "../lib/msg/tbf";
@@ -24,6 +25,42 @@ const executable = () => {
 const locale = { event: loadEventEncoding({ "0040": "@", "0a0d": "é" }), font: loadFontEncoding({}) };
 const context = { game: Game.IS, locale, constants: {}, file: "dialogue.msg", base: 0,
   encoding: EncodingScheme.event, terminator: 0x1103, strictEncoding: true };
+
+test("default uses the bundled PT-BR profile even with a project-local copy", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "p2-profile-test-"));
+  try {
+    const local = join(dir, "fonts", "new", "pt-br");
+    await mkdir(local, { recursive: true });
+    assert.deepEqual(await resolveFontProfile(dir, undefined, "is", "us"), {
+      name: "pt-br", path: fromTools("fonts", "pt-br"),
+    });
+    assert.deepEqual(await resolveFontProfile(dir, "pt-br", "is", "us"), { name: "pt-br", path: local });
+    await mkdir(join(dir, "fonts", "new", "custom"));
+    assert.equal((await resolveFontProfile(dir, "custom", "is", "us")).path, join(dir, "fonts", "new", "custom"));
+    assert.deepEqual(await resolveFontProfile(dir, "original", "is", "us"), { name: "original" });
+    assert.deepEqual(await resolveFontProfile(dir, undefined, "ep", "us"), { name: "original" });
+    assert.deepEqual(await resolveFontProfile(dir, undefined, "is", "eu"), { name: "original" });
+    await assert.rejects(resolveFontProfile(dir, "missing", "is", "us"), /not found/);
+    await assert.rejects(resolveFontProfile(dir, "pt-br", "is", "eu"), /Innocent Sin US only/);
+    await assert.rejects(resolveFontProfile(dir, "../pt-br", "is", "us"), /Invalid/);
+  } finally { await rm(dir, { recursive: true }); }
+});
+
+test("bundled profile renders all 30 accents without lab or an ISO", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "p2-bundled-test-"));
+  try {
+    const selected = await resolveFontProfile(dir, "pt-br", "is", "us");
+    const profile = await loadFontProfile(selected.path!, await loadLocale(fromTools("game/is/encoding/en")));
+    assert.equal(profile.mappings.length, 30);
+    assert.deepEqual((await prepareFontImages(selected.path!, dir, profile.mappings)).sort((a, b) => a - b), [7, 8, 12, 13]);
+    for (const mapping of profile.mappings) {
+      for (const start of [7, 12]) {
+        const image = PNG.sync.read(await readFile(join(dir, `${start + (mapping.font >> 8)}.png`)));
+        assert(glyphBounds(image, mapping.font).width > 0, mapping.character);
+      }
+    }
+  } finally { await rm(dir, { recursive: true }); }
+});
 
 test("dialogue bytes reach the accent glyph through the patched executable table", () => {
   const data = executable(), original = Buffer.from(data);

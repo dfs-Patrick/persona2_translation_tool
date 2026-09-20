@@ -1,0 +1,13 @@
+services:
+  tool:
+    image: persona2-translation-tool:local
+    build:
+      context: .
+    init: true
+    user: "${P2_UID:-1000}:${P2_GID:-1000}"
+    working_dir: /
+    volumes:
+      - type: bind
+        source: ./lab
+        target: /lab
+    command: ["--help"]

@@ -12,11 +12,17 @@ O fluxo descrito abaixo é voltado a **Persona 2: Innocent Sin, versão american
 
 Todo o conteúdo de `lab/` é privado ao ambiente de trabalho e deve permanecer fora do Git: ISO original, ISO modificada, arquivos extraídos, textos, scripts, imagens de fontes e perfis locais. Essa pasta é ignorada integralmente pelo `.gitignore` e não faz parte da distribuição do projeto.
 
-O perfil `pt-br` usado nos exemplos **não acompanha o repositório**. Ele deve ser preparado localmente a partir dos arquivos extraídos da ISO do próprio usuário. Os TBFs também contêm textos originais e não devem ser enviados ao repositório.
+A ferramenta inclui o perfil **`pt-br` em `fonts/pt-br/`**, usado por padrão no rebuild de IS US. Esse perfil contém os mapas, receitas e quatro páginas de fonte que testamos. Ele é a exceção explícita de assets distribuídos com a ferramenta; o restante de `lab/` continua excluído. Os TBFs contêm textos originais e não devem ser enviados ao repositório.
 
 Mantenha os arquivos do jogo dentro de `lab/`. Não inclua esse conteúdo em commits, releases, anexos de issues ou arquivos compactados publicados junto com o código. Os exemplos de texto neste README são fictícios.
 
 ## Requisitos e instalação
+
+No Windows, o fluxo com **Docker Desktop + PPSSPP no Windows** está descrito em [Instalação com Docker e integração com VS Code](doc/windows-docker.md). Ele dispensa Node.js no host e inclui um comando para reconstruir e abrir a ISO. A extensão e o gatilho automático ao salvar ainda serão implementados.
+
+Instale o **Docker Desktop** para executar a ferramenta e o **PPSSPP** separadamente para testar o jogo. O guia inclui a instalação, o clone do projeto e todos os comandos em PowerShell. A pasta `lab` fica dentro da pasta clonada: abra-a no Explorer com `explorer.exe .\lab` após o setup. Coloque sua ISO original em `lab\iso\p2is.iso`; a ISO reconstruída será `lab\p2is-translated.iso`. Dentro do container, essa mesma pasta aparece como `/lab`.
+
+### Instalação nativa (Linux/WSL)
 
 - Node.js com npm, compatível com o alvo ES2021 do projeto.
 - Git.
@@ -119,15 +125,24 @@ Preserve as chaves, os metadados e os comandos presentes no texto, como `[color(
 
 Os arquivos `*.ef.tbf` e `*.cf.tbf` representam blocos de comentário dos scripts exportados. **Os diálogos efetivamente compilados vêm dos `.msg.tbf`.** Traduzir apenas o comentário de um script não substitui sua mensagem. A pasta `new/scripts` não é uma entrada adicional automática do comando `rebuildTbf`.
 
-## 4. Preparar um perfil de fonte com acentos
+## 4. Usar a fonte padrão ou escolher outra
 
-Sem um perfil compatível, adicionar caracteres à tradução não cria os desenhos correspondentes no jogo.
+**O perfil PT-BR testado já acompanha a ferramenta.** Para IS US, não é necessário criar um perfil nem passar `--font`: o rebuild aplica `fonts/pt-br/` automaticamente, incluindo acentos, conversão de caracteres e métricas. A extração continua lendo a ISO com a codificação original.
 
-Para iniciar um perfil local chamado `pt-br`, copie os arquivos originais extraídos:
+Para personalizar a fonte testada, copie o perfil para um nome próprio:
 
 ```bash
-mkdir -p lab/translation/en/fonts/new/pt-br
-cp -R lab/translation/en/fonts/original/. lab/translation/en/fonts/new/pt-br/
+mkdir -p lab/translation/en/fonts/new/minha-fonte
+cp -R fonts/pt-br/. lab/translation/en/fonts/new/minha-fonte/
+```
+
+Selecione-o com `--font minha-fonte`. Nomes explícitos são procurados primeiro em `translation/en/fonts/new/<nome>` e depois em `fonts/<nome>` da ferramenta. Sem o argumento, a cópia distribuída de `pt-br` tem prioridade até sobre uma cópia local com o mesmo nome. `--font original` desativa o perfil; outros jogos/variantes mantêm a fonte original por padrão.
+
+Para iniciar um perfil do zero, a partir da fonte original extraída:
+
+```bash
+mkdir -p lab/translation/en/fonts/new/minha-fonte
+cp -R lab/translation/en/fonts/original/. lab/translation/en/fonts/new/minha-fonte/
 ```
 
 Essa cópia é apenas o ponto de partida: **ainda é necessário desenhar os caracteres e ajustar os mapas**.
@@ -147,7 +162,7 @@ Cadastre o mesmo caractere em ambos os mapas e desenhe-o nas posições corretas
 
 Os PNGs de fonte devem manter a grade de 256 × 256 pixels e a transparência. Para os caracteres que também usam a fonte estreita, forneça ambas as versões. Preserve os mapas de `game/is/encoding/en` e `fonts/original`: eles representam a origem, enquanto as alterações pertencem ao perfil.
 
-Ao usar `--font pt-br`, o rebuild:
+No rebuild padrão de IS US, ou ao selecionar um perfil com `--font`, a ferramenta:
 
 1. Carrega e valida o perfil e os caracteres dos TBFs.
 2. Prepara as imagens, incluindo as composições opcionais.
@@ -170,21 +185,21 @@ O restante do glifo vem da letra base. As receitas são aplicadas às versões n
 
 ## 5. Reconstruir a ISO
 
-Com um perfil `pt-br` já preparado:
+O perfil PT-BR é aplicado automaticamente:
 
 ```bash
 npx tsc
 node dist/cli/mod.js rebuildTbf lab/iso/p2is.iso lab/translation/en \
-  --font pt-br --game is --variant us --locale en
+  --game is --variant us --locale en
 ```
 
 **A saída padrão é sempre `lab/p2is-translated.iso`.** Uma nova execução substitui essa saída. A ISO original permanece em `lab/iso/p2is.iso`.
 
-Para reconstruir usando apenas a codificação original, omita `--font pt-br`:
+Para escolher outro perfil, acrescente `--font minha-fonte`. Para reconstruir usando a fonte e a codificação originais, use explicitamente `--font original`:
 
 ```bash
 node dist/cli/mod.js rebuildTbf lab/iso/p2is.iso lab/translation/en \
-  --game is --variant us --locale en
+  --font original --game is --variant us --locale en
 ```
 
 O rebuild atualiza `translation/en/after` e usa `lab/dump/rebuild` como diretório temporário. Esse diretório é removido ao concluir com sucesso e preservado quando ocorre uma falha. Caso use `-o` para escolher outro diretório de trabalho, reserve uma pasta exclusiva para ele: todo o seu conteúdo será removido no sucesso. `--iso-output` permite alterar explicitamente o destino da ISO.
@@ -267,7 +282,7 @@ Crie uma branch, selecione apenas código, documentação e configurações, rev
 
 ```bash
 git switch -c translation-workflow
-git add .gitignore readme.md cli lib game tests package-lock.json
+git add .gitignore readme.md cli lib game fonts tests package.json package-lock.json
 git diff --cached --stat
 git diff --cached
 ```
