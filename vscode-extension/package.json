@@ -57,12 +57,14 @@
       {
         "command": "p2.extract",
         "title": "Extrair ISO",
-        "category": "Persona 2"
+        "category": "Persona 2",
+        "icon": "$(cloud-download)"
       },
       {
         "command": "p2.rebuild",
         "title": "Compilar ISO",
-        "category": "Persona 2"
+        "category": "Persona 2",
+        "icon": "$(package)"
       },
       {
         "command": "p2.toggleOnSave",
@@ -72,12 +74,14 @@
       {
         "command": "p2.logs",
         "title": "Mostrar saída",
-        "category": "Persona 2"
+        "category": "Persona 2",
+        "icon": "$(output)"
       },
       {
         "command": "p2.rebuildAndRun",
         "title": "Compilar e executar",
-        "category": "Persona 2"
+        "category": "Persona 2",
+        "icon": "$(play)"
       }
     ],
     "viewsContainers": {
@@ -110,6 +114,26 @@
           "command": "p2.refresh",
           "when": "view == p2.files",
           "group": "navigation"
+        },
+        {
+          "command": "p2.extract",
+          "when": "view == p2.files",
+          "group": "navigation@1"
+        },
+        {
+          "command": "p2.rebuild",
+          "when": "view == p2.files",
+          "group": "navigation@2"
+        },
+        {
+          "command": "p2.rebuildAndRun",
+          "when": "view == p2.files",
+          "group": "navigation@3"
+        },
+        {
+          "command": "p2.logs",
+          "when": "view == p2.files",
+          "group": "navigation@4"
         }
       ]
     },

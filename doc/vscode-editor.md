@@ -21,11 +21,13 @@ iniciar o PPSSPP do Windows.
    Se o projeto já estava aberto antes desta configuração, execute **Dev
    Containers: Rebuild Container** uma vez para atualizar a imagem.
 6. Abra a aba **Persona 2** na barra de atividades. Ela mostra a árvore
-   **Arquivos de tradução**. Se a árvore estiver vazia, ainda não houve extração.
+   **Arquivos de tradução**. Mesmo vazia, o cabeçalho da árvore oferece os
+   botões **Extrair**, **Compilar**, **Compilar e executar**, **Saída** e
+   **Atualizar**.
 7. No Explorer do Windows, abra `<pasta-do-projeto>\lab\iso` e coloque sua ISO
    original com o nome `p2is.iso`.
-8. Na aba **Persona 2**, clique em **Extrair**. Aguarde a mensagem de conclusão
-   na saída e abra `en/new/messages` na árvore lateral.
+8. No cabeçalho da árvore, clique em **Extrair**. Aguarde a mensagem de
+   conclusão na saída e abra `en/new/messages` na árvore lateral.
 9. Abra um arquivo `.msg.tbf`. O editor visual mostra o cabeçalho no alto,
    **Antes · original** à esquerda e **Depois · tradução** à direita.
 

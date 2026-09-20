@@ -76,8 +76,10 @@ pasta-do-projeto\lab\iso\p2is.iso
 ### 5. Extraia os arquivos para tradução
 
 1. No VS Code conectado ao container, clique no ícone **Persona 2** na barra
-   lateral.
-2. No painel **Arquivos de tradução**, clique em **Extrair**.
+  lateral.
+2. No cabeçalho do painel **Arquivos de tradução**, clique no botão **Extrair**
+  (ícone de download). Os botões do painel aparecem mesmo antes de existir
+  qualquer arquivo.
 3. Aguarde a mensagem de conclusão na saída do VS Code.
 4. Abra as pastas `en`, `new`, `messages`.
 5. Abra um arquivo com final `.msg.tbf`.
