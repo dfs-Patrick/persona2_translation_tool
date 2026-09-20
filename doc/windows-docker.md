@@ -1,6 +1,10 @@
-# Windows, Docker e PPSSPP
+# Windows manual: Docker, PowerShell e PPSSPP
 
-A ferramenta executa em um container Arch Linux; o PPSSPP executa no Windows e abre a ISO pela pasta compartilhada `lab`. O editor TBF do VS Code reconstrói a ISO e pode iniciar o jogo ao salvar, sem executar uma interface gráfica dentro do Docker. Consulte o [guia do editor](vscode-editor.md) para a instalação automática no Dev Container.
+Este é o fluxo técnico para controlar a ferramenta pelo PowerShell, sem usar o
+onboarding visual do VS Code. A ferramenta executa em um container Arch Linux;
+o PPSSPP executa no Windows e abre a ISO pela pasta compartilhada `lab`.
+Para o fluxo visual, consulte o [guia do editor](vscode-editor.md). Para uma
+instalação sem terminal, consulte o [README principal](../readme.md).
 
 ## Preparação
 

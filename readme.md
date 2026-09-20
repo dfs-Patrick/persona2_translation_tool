@@ -6,6 +6,42 @@ precisa entender programação para participar como voluntário.
 O jogo não acompanha o projeto. Para começar, você precisa ter uma ISO original
 de **Persona 2: Innocent Sin US** obtida da sua própria cópia.
 
+## Sumário
+
+### Caminho para iniciantes
+
+- [Instalação para iniciantes no Windows](#instalação-para-iniciantes-no-windows)
+- [Instale os programas](#1-instale-os-programas)
+- [Baixe o projeto](#2-baixe-o-projeto)
+- [Instale o suporte do projeto](#3-instale-o-suporte-do-projeto)
+- [Coloque sua ISO](#4-coloque-sua-iso)
+- [Extraia os arquivos para tradução](#5-extraia-os-arquivos-para-tradução)
+- [Faça sua primeira tradução](#6-faça-sua-primeira-tradução)
+- [Gere a ISO traduzida](#7-gere-a-iso-traduzida)
+
+### Guias técnicos
+
+- [Editor TBF no VS Code](doc/vscode-editor.md): editor visual, Dev Container,
+  busca, destaque, ações e execução ao salvar.
+- [Windows manual: Docker, PowerShell e PPSSPP](doc/windows-docker.md):
+  instalação controlada pelo terminal, launcher e diagnóstico.
+- [Linux no WSL](doc/linux-wsl.md): checkout e execução dentro do filesystem
+  Linux, com Docker Desktop como engine.
+- [Linux nativo](doc/linux-native.md): Node.js, compilação e execução sem
+  Docker.
+- [CLI nativa](doc/cli.md): comandos `extractAll`, `exportTbf`, `importTbf` e
+  `rebuildTbf`, opções e estrutura de diretórios.
+- [Desenvolvimento e manutenção](doc/development.md): arquitetura, testes,
+  build da imagem e empacotamento das extensões.
+- [Editor TBF](vscode-extension/README.md): arquitetura e desenvolvimento da
+  extensão principal.
+- [PPSSPP Host](vscode-ppsspp-host/README.md): integração local com o
+  emulador do Windows.
+
+O guia inicial abaixo é intencionalmente curto e visual. Os documentos técnicos
+assumem familiaridade com terminal, caminhos, Docker ou Node.js e são a
+referência para manutenção e suporte.
+
 ## Instalação para iniciantes no Windows
 
 Você não precisa criar uma conta, instalar Git ou usar o terminal.
@@ -121,17 +157,6 @@ Para testar no jogo:
 
 Depois da primeira configuração, você pode marcar **Executar ao salvar** para
 recompilar e abrir o jogo automaticamente.
-
-## Ajuda para situações específicas
-
-- [Guia visual completo do VS Code](doc/vscode-editor.md): detalhes da tela,
-  edição, salvamento, compilação e execução.
-- [Uso com Docker e PowerShell](doc/windows-docker.md): instalação alternativa
-  e comandos para quem prefere controlar o processo pelo terminal.
-- [Editor TBF](vscode-extension/README.md): funcionamento e desenvolvimento da
-  extensão de tradução.
-- [PPSSPP Host](vscode-ppsspp-host/README.md): integração avançada com o
-  emulador do Windows.
 
 A pasta `lab` contém sua ISO, arquivos extraídos e traduções locais. Ela não é
 enviada ao Git nem compartilhada pelo projeto.
