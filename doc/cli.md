@@ -92,6 +92,13 @@ Scripts em `after/scripts` só preenchem TBFs quando contêm blocos de diálogo
 compatíveis. Um script que contém apenas código de controle é preservado sem
 alteração.
 
+Se um caractere do texto `after` não existir no perfil de fonte selecionado, o
+rebuild remove esse caractere apenas do `text.after` do TBF gerado. O arquivo
+`.msg` ou `.script` original não é alterado. Depois que a ISO é criada, o
+processo imprime uma tabela vermelha com o TBF, o arquivo `after`, a mensagem e
+cada caractere removido. Corrija o arquivo de origem e execute o rebuild
+novamente para restaurá-lo.
+
 ## `rebuildTbf`
 
 Reconstrói a ISO a partir da tradução:

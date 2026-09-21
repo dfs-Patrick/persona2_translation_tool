@@ -189,13 +189,51 @@ const afterTarget = (file: TbfFile, id: string, script: boolean): boolean =>
   file.header.originalDirectory.toLowerCase().includes(`/${id}.bin$`) &&
   (script ? file.header.originalFilename === "script.ef" : file.header.originalFilename === "script.msg");
 
-export const applyAfterTranslations = async (translationRoot: string): Promise<number> => {
+export interface AfterEncodingIssue {
+  tbfFile: string;
+  afterFile: string;
+  message: string;
+  character: string;
+}
+
+export const stripUnsupportedCharacters = (
+  text: string,
+  encoding: Record<string, number>,
+  metadata: Omit<AfterEncodingIssue, "character">,
+): [string, AfterEncodingIssue[]] => {
+  const issues = new Map<string, AfterEncodingIssue>();
+  const result = text.split(/(\[[^\]\r\n]*\])/g).map((part, index) => {
+    if (index % 2 === 1) return part;
+    let output = "";
+    for (const character of part) {
+      if (character === "\n" || character === "\r" || encoding[character] !== undefined) {
+        output += character;
+        continue;
+      }
+      const key = `${metadata.tbfFile}\0${metadata.afterFile}\0${metadata.message}\0${character}`;
+      if (!issues.has(key)) issues.set(key, { ...metadata, character });
+    }
+    return output;
+  }).join("");
+  return [result, [...issues.values()]];
+};
+
+export interface AfterTranslationResult {
+  applied: number;
+  rejected: AfterEncodingIssue[];
+}
+
+export const applyAfterTranslations = async (
+  translationRoot: string,
+  encoding: Record<string, number>,
+): Promise<AfterTranslationResult> => {
   const files = await afterTbfFiles(translationRoot);
   const targets = await Promise.all(files.map(async source => ({
     source,
     file: parseTbf(await readTextFile(source)),
   })));
   let applied = 0;
+  const rejected: AfterEncodingIssue[] = [];
 
   for (const directory of ["msg", "scripts"]) {
     const inputRoot = joinPath(translationRoot, "after", directory);
@@ -214,7 +252,16 @@ export const applyAfterTranslations = async (translationRoot: string): Promise<n
       const matches = targets.filter(target => afterTarget(target.file, id, script));
       if (matches.length !== 1) continue;
       const target = matches[0].file;
-      const byKey = new Map(translated.map(item => [item.info.msg_key, normalizeAfterText(item.text.before)]));
+      const byKey = new Map(translated.map(item => {
+        const metadata = {
+          tbfFile: basename(matches[0].source),
+          afterFile: entry.name,
+          message: item.info.msg_key,
+        };
+        const [text, issues] = stripUnsupportedCharacters(normalizeAfterText(item.text.before), encoding, metadata);
+        rejected.push(...issues);
+        return [item.info.msg_key, text] as const;
+      }));
       for (const item of target.translation) {
         const text = byKey.get(item.info.msg_key);
         if (text !== undefined) { item.text.after = text; applied++; }
@@ -222,7 +269,7 @@ export const applyAfterTranslations = async (translationRoot: string): Promise<n
       await writeTextFile(matches[0].source, writeTbf(target));
     }
   }
-  return applied;
+  return { applied, rejected };
 };
 
 export const clearGeneratedAfter = async (translationRoot: string): Promise<void> => {

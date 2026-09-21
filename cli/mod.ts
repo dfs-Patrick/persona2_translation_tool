@@ -348,8 +348,19 @@ const args = yargs(hideBin(process.argv))
           ...gameContextIso, locale: profile?.locale ?? originalLocale, strictEncoding: true,
         };
         await loadScriptConstants(gameContextIso);
-        const appliedAfter = await applyAfterTranslations(translationRoot);
-        if (appliedAfter) console.log(`Applied ${appliedAfter} translations from after/.`);
+        const afterResult = await applyAfterTranslations(translationRoot, gameContextMod.locale.event.utf2bin);
+        if (afterResult.applied) console.log(`Applied ${afterResult.applied} translations from after/.`);
+        const printRejectedAfter = () => {
+          if (!afterResult.rejected.length) return;
+          const red = "\x1b[31m";
+          const reset = "\x1b[0m";
+          console.log(`\n${red}Characters removed from after/ before writing TBF:${reset}`);
+          console.log(`${red}TBF file | after file | message | rejected character${reset}`);
+          for (const issue of afterResult.rejected) {
+            console.log(`${red}${issue.tbfFile} | ${issue.afterFile} | ${issue.message} | ${JSON.stringify(issue.character)}${reset}`);
+          }
+          console.log(`${red}The rejected characters were removed from text.after. Fix the source files and rebuild to restore them.${reset}\n`);
+        };
         await validateTbfEncoding(translationMessages, gameContextMod);
         await importTbfFiles(translationMessages, generated);
         if (translationMessages !== args.translation) {
@@ -425,6 +436,7 @@ const args = yargs(hideBin(process.argv))
         }, layout);
         await rm(work, { recursive: true, force: true });
         console.log(`Temporary rebuild directory removed: ${work}`);
+        printRejectedAfter();
       } catch (error) {
         console.error(`Rebuild failed; temporary directory preserved: ${work}`);
         throw error;

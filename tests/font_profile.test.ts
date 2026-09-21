@@ -9,7 +9,7 @@ import { loadEventEncoding, loadFontEncoding, EncodingScheme, loadLocale } from 
 import { fromTools } from "../lib/util/filesystem";
 import { messageToBin, parseMessage } from "../lib/msg/msg";
 import { Game } from "../lib/util/context";
-import { normalizeAfterText, splitMessages, validateTbfEncoding } from "../lib/msg/tbf";
+import { normalizeAfterText, splitMessages, stripUnsupportedCharacters, validateTbfEncoding } from "../lib/msg/tbf";
 
 const prefix = [0x35, 0x36, 1, 5, 0x112b, 0x5ea, 0xe31, 0x9cf,
   0x9ec, 0x8dc, 0x115a, 0xa35, 0xeaa, 0x823, 0xa9c, 0x120,
@@ -37,6 +37,14 @@ test("message after files split on keys with ret terminators", () => {
 test("after opcodes become TBF commands", () => {
   assert.equal(normalizeAfterText("[31(0, 0, 34)]Nome[end_diag][wait][color(name_green)]Texto"),
     "[color(name_green)]Nome[wait][clear][color(name_green)]Texto");
+});
+
+test("unsupported after characters are removed and reported", () => {
+  const [text, issues] = stripUnsupportedCharacters("A´B\n[color(name_green)]C", { A: 1, B: 2, C: 3, "\\": 4 }, {
+    tbfFile: "0848_script.msg.tbf", afterFile: "e00cd.msg", message: "msg_16",
+  });
+  assert.equal(text, "AB\n[color(name_green)]C");
+  assert.deepEqual(issues.map(issue => issue.character), ["´"]);
 });
 
 test("default uses the bundled PT-BR profile even with a project-local copy", async () => {
