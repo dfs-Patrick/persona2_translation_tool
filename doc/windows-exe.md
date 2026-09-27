@@ -27,12 +27,16 @@ uma conversão para código de máquina nem uma proteção contra leitura do có
 
 ## Downloads separados por sistema
 
-Cada push na branch `main`, tag `v*` ou execução manual de **Native packages**
-gera os artefatos no GitHub Actions:
+Baixe os ZIPs em [Releases](https://github.com/dfs-Patrick/persona2_translation_tool/releases):
 
 - `Persona2Tool-Windows-x64.zip`
 - `Persona2Tool-Linux-x64.zip`
 
-Os binários ficam nos artefatos do workflow, não no histórico Git. Após o build,
-`python scripts/archive-native.py` gera o ZIP Windows; para Linux, defina
-`P2_EXE_TARGET=node22-linux-x64` antes de executar o mesmo script.
+Os builds são feitos localmente e anexados à Release, sem workflow automático.
+Consulte `doc/releases.md` no repositório para publicar uma nova versão.
+
+## Erros
+
+A CLI mostra a causa e o caminho afetado. No PowerShell, use `$env:P2_DEBUG = "1"`
+antes de executar o comando para incluir os detalhes técnicos. Se a extração
+falhar, recomece em uma pasta nova e preserve qualquer tradução já existente.

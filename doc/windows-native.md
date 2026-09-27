@@ -1,5 +1,5 @@
 > Para reduzir o número de arquivos ao copiar, use o novo [executável único](windows-exe.md).
-> O workflow agora gera essa versão; o guia abaixo descreve o pacote antigo com Node separado.
+> As Releases distribuem essa versão; o guia abaixo descreve o pacote antigo com Node separado.
 
 # Pacote nativo — sem Docker
 
@@ -9,7 +9,7 @@ pasta inteira: o executável em `runtime` depende dos demais arquivos do pacote.
 
 ## Usar no Windows
 
-1. Baixe o artefato Windows do workflow **Native packages** no GitHub Actions e
+1. Gere o pacote antigo pelos comandos de desenvolvimento abaixo e
    extraia o ZIP inteiro para uma pasta gravável. Não execute dentro do ZIP.
 2. Copie sua ISO original de Persona 2 Innocent Sin **US** para `lab/iso/p2is.iso`.
 3. Abra `Extrair.cmd`. A janela informa os erros e aguarda uma tecla ao terminar.
@@ -59,8 +59,7 @@ npm run package:native
 
 A saída fica em `release/p2-tool-<plataforma>-<arquitetura>`. O script inclui o
 Node que executou o build. Para Windows, compile no Windows: copiar o Node do
-Linux não produz um executável Windows. O workflow gera e testa pacotes nos dois
-sistemas. Nenhuma ISO ou tradução local é incluída. Para gerar novamente, mova
+Linux não produz um executável Windows. Os builds e testes devem ser executados localmente para cada sistema. Nenhuma ISO ou tradução local é incluída. Para gerar novamente, mova
 ou remova apenas a pasta do pacote anterior (preserve seus trabalhos locais).
 
 No Linux, execute `sh ./p2-tool --help` após extrair o artefato; se necessário,
@@ -72,7 +71,7 @@ Para as dependências JavaScript atuais, também é possível montar o pacote co
 `P2_WINDOWS_RUNTIME=/caminho/node-v22.x.x-win-x64 npm run package:native`.
 Essa pasta deve conter `node.exe` e `LICENSE` da distribuição oficial Windows x64.
 A verificação da CLI usa o Node do Linux; isso não substitui os testes em Windows.
-O workflow no Windows é o caminho preferido para validar os artefatos distribuídos.
+Teste em Windows antes de declarar o pacote Windows validado.
 
 ## Erros e extrações interrompidas
 

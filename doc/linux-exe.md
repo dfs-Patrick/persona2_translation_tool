@@ -1,6 +1,8 @@
 # Executável Linux x64
 
-Extraia Persona2Tool-Linux-x64.zip em uma pasta gravável. O executável contém o
+Baixe `Persona2Tool-Linux-x64.zip` em
+[Releases](https://github.com/dfs-Patrick/persona2_translation_tool/releases).
+Extraia o ZIP em uma pasta gravável. O executável contém o
 runtime Node, dependências, fontes padrão e configurações do jogo.
 
 ```sh

@@ -1,184 +1,68 @@
 # Tradução de Persona 2
 
-Este projeto permite traduzir **Persona 2: Innocent Sin** para PSP. Você não
-precisa entender programação para participar como voluntário.
+Ferramenta para traduzir **Persona 2: Innocent Sin US para PSP**, com editor TBF,
+fontes personalizadas e reconstrução da ISO. O jogo não acompanha a ferramenta:
+use uma ISO original obtida da sua própria cópia.
 
-O jogo não acompanha o projeto. Para começar, você precisa ter uma ISO original
-de **Persona 2: Innocent Sin US** obtida da sua própria cópia.
+## Baixar a ferramenta
 
-## Executável único
+Abra [Releases](https://github.com/dfs-Patrick/persona2_translation_tool/releases)
+e, em **Assets**, baixe o pacote do seu sistema:
 
-O pacote com `Persona2Tool.exe` inclui Node, código, dependências e recursos do
-jogo no próprio executável, reduzindo os arquivos ao copiar a ferramenta.
-Consulte [Executável Windows](doc/windows-exe.md). O workflow **Native packages**
-agora gera essa distribuição. Para compilar: `npm run package:exe`.
+- **Persona2Tool-Windows-x64.zip** — Windows 64 bits.
+- **Persona2Tool-Linux-x64.zip** — Linux x64 com glibc.
 
-## Execução nativa (novo)
+Os pacotes incluem o runtime, o código e os recursos no executável. Não é
+necessário instalar Node, npm, Docker ou WSL. Os arquivos **Source code** são
+para desenvolvimento; para usar a ferramenta, escolha um dos ZIPs acima.
+Confira nas notas da versão as limitações e se ela está marcada como pré-release.
 
-Para usar sem Docker ou WSL, consulte o [guia do pacote nativo](doc/windows-native.md).
-O workflow **Native packages** gera pacotes para Windows e Linux com Node incluído,
-CLI, fontes e extensões do VS Code. No Windows, os atalhos `Extrair.cmd` e
-`Compilar.cmd` executam o fluxo localmente.
+## Começar no Windows
 
-O guia de container abaixo continua como alternativa. O script
-`scripts/p2-tool.ps1` agora executa a ferramenta nativamente.
+1. Extraia o ZIP inteiro para uma pasta gravável, como `Documentos/Persona2Tool`.
+2. Copie a ISO original US para `lab/iso/p2is.iso` dentro dessa pasta.
+3. Execute **Extrair.cmd** e aguarde a mensagem de conclusão. Se aparecer `ERRO`,
+   a extração não terminou; preserve suas traduções e consulte o guia.
+4. Instale o [Visual Studio Code](https://code.visualstudio.com/).
+5. Na aba Extensões, abra o menu `...` → **Instalar do VSIX** e selecione
+   `extensions/p2-tbf-editor.vsix` do pacote.
+6. Abra a pasta do pacote no VS Code e confirme a confiança no workspace.
+7. No painel **Persona 2**, abra `en/new/messages` e um arquivo `.msg.tbf`.
+8. Edite a coluna **Depois · tradução** e salve com `Ctrl+S`.
+9. Execute **Compilar.cmd** ou clique em **Compilar** no editor.
 
-## Sumário
+A ISO traduzida será criada em `lab/p2is-translated.iso`. A pasta `lab` guarda
+seus arquivos de trabalho: preserve-a ao atualizar a ferramenta.
+Não é necessário usar Dev Containers.
 
-### Caminho para iniciantes
+## Testar no PPSSPP
 
-- [Instalação para iniciantes no Windows](#instalação-para-iniciantes-no-windows)
-- [Instale os programas](#1-instale-os-programas)
-- [Baixe o projeto](#2-baixe-o-projeto)
-- [Instale o suporte do projeto](#3-instale-o-suporte-do-projeto)
-- [Coloque sua ISO](#4-coloque-sua-iso)
-- [Extraia os arquivos para tradução](#5-extraia-os-arquivos-para-tradução)
-- [Faça sua primeira tradução](#6-faça-sua-primeira-tradução)
-- [Gere a ISO traduzida](#7-gere-a-iso-traduzida)
+No Windows, instale também `extensions/p2-ppsspp-host.vsix`. Instale o
+[PPSSPP](https://www.ppsspp.org/download/) e execute no VS Code o comando
+**Persona 2: Configurar PPSSPP no Windows**, informando o executável do emulador
+e o caminho absoluto da ISO traduzida. Depois use **Compilar e executar**.
+No Linux, abra a ISO no emulador manualmente.
 
-### Guias técnicos
+## Linux e documentação
 
-- [Editor TBF no VS Code](doc/vscode-editor.md): editor visual, Dev Container,
-  busca, destaque, ações e execução ao salvar.
-- [Windows manual: Docker, PowerShell e PPSSPP](doc/windows-docker.md):
-  instalação controlada pelo terminal, launcher e diagnóstico.
-- [Linux no WSL](doc/linux-wsl.md): checkout e execução dentro do filesystem
-  Linux, com Docker Desktop como engine.
-- [Linux nativo](doc/linux-native.md): Node.js, compilação e execução sem
-  Docker.
-- [CLI nativa](doc/cli.md): comandos `extractAll`, `exportTbf`, `importTbf` e
-  `rebuildTbf`, opções e estrutura de diretórios.
-- [Desenvolvimento e manutenção](doc/development.md): arquitetura, testes,
-  build da imagem e empacotamento das extensões.
-- [Editor TBF](vscode-extension/README.md): arquitetura e desenvolvimento da
-  extensão principal.
-- [PPSSPP Host](vscode-ppsspp-host/README.md): integração local com o
-  emulador do Windows.
+- [Executável Linux](doc/linux-exe.md): comandos para extrair e reconstruir.
+- [Executável Windows](doc/windows-exe.md): detalhes e diagnóstico.
+- [CLI](doc/cli.md): opções avançadas.
+- [Publicar uma versão](doc/releases.md): build local e ZIPs por sistema.
+- [Linux pelo código-fonte](doc/linux-native.md): desenvolvimento com Node.
+- [Documentação do editor](doc/vscode-editor.md): recursos do editor e fluxo antigo de container.
 
-O guia inicial abaixo é intencionalmente curto e visual. Os documentos técnicos
-assumem familiaridade com terminal, caminhos, Docker ou Node.js e são a
-referência para manutenção e suporte.
+O fluxo de Docker permanece disponível como alternativa técnica em
+[Windows/Docker](doc/windows-docker.md) e [Linux/WSL](doc/linux-wsl.md).
+A distribuição recomendada é a dos executáveis em Releases.
 
-## Instalação para iniciantes no Windows
+## Atualizar ou recuperar uma extração interrompida
 
-Você não precisa criar uma conta, instalar Git ou usar o terminal.
-
-### 1. Instale os programas
-
-Abra cada link e aceite as opções recomendadas do instalador:
-
-- [Docker Desktop](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe)
-- [Visual Studio Code](https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user)
-- [PPSSPP para Windows](https://www.ppsspp.org/download/)
-
-O instalador do Docker prepara automaticamente os componentes necessários do
-Windows. Se ele pedir para reiniciar o computador, reinicie antes de continuar.
-Depois de reiniciar, abra o Docker Desktop e espere até ele indicar que está
-pronto.
-
-### 2. Baixe o projeto
-
-1. Abra a página do projeto no GitHub:
-   <https://github.com/dfs-Patrick/persona2_translation_tool>
-2. Clique no botão verde **Code**.
-3. Clique em **Download ZIP**.
-4. Abra o arquivo baixado e extraia a pasta para um local fácil, como
-   `Documentos`.
-5. Abra o **Visual Studio Code** e escolha **File → Open Folder**.
-6. Selecione a pasta extraída do projeto.
-
-Não é necessário fazer login no GitHub.
-
-### 3. Instale o suporte do projeto
-
-Ao abrir a pasta, o VS Code mostrará uma recomendação para instalar **Dev
-Containers**. Clique em **Install**. Essa é a única extensão externa que você
-precisa instalar manualmente, porque ela é o recurso do VS Code que permite
-abrir o projeto dentro do ambiente preparado.
-
-Depois que a instalação terminar:
-
-1. Pressione `Ctrl+Shift+P`.
-2. Escolha **Dev Containers: Reopen in Container**.
-3. Aguarde. Na primeira vez pode levar alguns minutos.
-4. Quando o VS Code perguntar se deve recarregar, escolha **Reload Window**.
-  Se o projeto já estava aberto antes desta configuração, execute **Dev
-  Containers: Rebuild Container** uma vez.
-
-O projeto já inclui **Persona 2 — Editor TBF** na imagem do container, então a
-aba deve aparecer assim que o VS Code conectar, sem instalar ou recarregar nada.
-O **PPSSPP Host** precisa ficar no VS Code do Windows, porque é ele
-que consegue iniciar um programa do Windows; ele fica disponível em
-`lab/tools/p2-ppsspp-host.vsix` para a instalação local quando você for testar
-o jogo. A aba **Persona 2** deve aparecer depois que o container terminar de
-recarregar.
-
-### 4. Coloque sua ISO
-
-1. Abra a pasta do projeto no Explorador de Arquivos.
-2. Entre em `lab` e depois em `iso`.
-3. Copie sua ISO original para essa pasta.
-4. Renomeie o arquivo para `p2is.iso`.
-
-O caminho deve terminar assim:
-
-```text
-pasta-do-projeto\lab\iso\p2is.iso
-```
-
-### 5. Extraia os arquivos para tradução
-
-1. No VS Code conectado ao container, clique no ícone **Persona 2** na barra
-  lateral.
-2. No cabeçalho do painel **Arquivos de tradução**, clique no botão **Extrair**
-  (ícone de download). Os botões do painel aparecem mesmo antes de existir
-  qualquer arquivo.
-3. Aguarde a mensagem de conclusão na saída do VS Code.
-4. Abra as pastas `en`, `new`, `messages`.
-5. Abra um arquivo com final `.msg.tbf`.
-
-Se o painel estiver vazio, confira se a ISO está no local indicado no passo 4.
-
-### 6. Faça sua primeira tradução
-
-O editor mostra:
-
-- **Antes · original**: texto original do jogo, à esquerda.
-- **Depois · tradução**: texto que será usado no jogo, à direita.
-
-Digite a tradução na coluna da direita e clique em **Salvar** ou pressione
-`Ctrl+S`. Pressione Enter normalmente para criar uma nova linha. O editor cuida
-da conversão para o formato do arquivo.
-
-Quando já existirem arquivos traduzidos em `lab/translation/en/after/msg`, o
-rebuild reconhece arquivos como `e0000.msg` pelo identificador do diretório
-`event.bin/e0000.bin` e preenche automaticamente os campos `after` dos TBFs
-correspondentes. Arquivos de `after/scripts` também são reconhecidos pelo mesmo
-identificador quando contêm blocos de diálogo compatíveis com o TBF. Scripts que
-contêm apenas código de controle são preservados sem alteração.
-
-### 7. Gere a ISO traduzida
-
-Clique em **Compilar** no alto do editor. Ao terminar, a ISO estará em:
-
-```text
-pasta-do-projeto\lab\p2is-translated.iso
-```
-
-Para testar no jogo:
-
-1. Abra a Paleta de Comandos com `Ctrl+Shift+P`.
-2. Execute **Persona 2: Configurar PPSSPP no Windows**.
-3. Escolha o programa PPSSPP instalado e informe o caminho da ISO traduzida.
-4. Volte ao editor e clique em **Compilar e executar**.
-
-Depois da primeira configuração, você pode marcar **Executar ao salvar** para
-recompilar e abrir o jogo automaticamente.
-
-A pasta `lab` contém sua ISO, arquivos extraídos e traduções locais. Ela não é
-enviada ao Git nem compartilhada pelo projeto.
+Extraia a nova versão em uma pasta separada. Preserve a pasta antiga se houver
+traduções. Dumps de uma extração interrompida podem estar incompletos: não os
+reutilize para reconstruir a ISO. Instale o VSIX atualizado ao trocar de versão.
 
 ## Origem
 
-Este projeto é baseado no [p2_tool](https://github.com/eiowlta/p2_tool), de
-eiowlta. Os créditos e o histórico do projeto original são preservados.
+Baseado no [p2_tool](https://github.com/eiowlta/p2_tool), de eiowlta.
+Os créditos e o histórico do projeto original são preservados.
