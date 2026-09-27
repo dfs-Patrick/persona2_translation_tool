@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import yargs from "yargs";
+import { formatCliError } from "../lib/util/cli_error";
 import { hideBin } from "yargs/helpers";
 import { rm } from "fs/promises";
 import * as vm2 from "vm2";
@@ -445,5 +446,11 @@ const args = yargs(hideBin(process.argv))
   )
   .demandCommand()
   .strict()
-  .showHelpOnFail(true)
+  .showHelpOnFail(false)
+  .fail((message, error) => {
+    console.error(formatCliError(error ?? new Error(message), process.env.P2_DEBUG === "1"));
+    // Extraction may still have queued writes. Stop them before reporting failure
+    // to the launcher; a failed extraction must never continue in the background.
+    process.exit(1);
+  })
   .help().argv;

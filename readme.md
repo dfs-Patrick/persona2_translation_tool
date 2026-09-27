@@ -6,6 +6,23 @@ precisa entender programação para participar como voluntário.
 O jogo não acompanha o projeto. Para começar, você precisa ter uma ISO original
 de **Persona 2: Innocent Sin US** obtida da sua própria cópia.
 
+## Executável único
+
+O pacote com `Persona2Tool.exe` inclui Node, código, dependências e recursos do
+jogo no próprio executável, reduzindo os arquivos ao copiar a ferramenta.
+Consulte [Executável Windows](doc/windows-exe.md). O workflow **Native packages**
+agora gera essa distribuição. Para compilar: `npm run package:exe`.
+
+## Execução nativa (novo)
+
+Para usar sem Docker ou WSL, consulte o [guia do pacote nativo](doc/windows-native.md).
+O workflow **Native packages** gera pacotes para Windows e Linux com Node incluído,
+CLI, fontes e extensões do VS Code. No Windows, os atalhos `Extrair.cmd` e
+`Compilar.cmd` executam o fluxo localmente.
+
+O guia de container abaixo continua como alternativa. O script
+`scripts/p2-tool.ps1` agora executa a ferramenta nativamente.
+
 ## Sumário
 
 ### Caminho para iniciantes

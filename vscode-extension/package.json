@@ -1,7 +1,7 @@
 {
   "name": "p2-tbf-editor",
   "displayName": "Persona 2 — Editor TBF",
-  "description": "Editor paralelo de tradução TBF e comandos da ferramenta no Dev Container.",
+  "description": "Editor de tradução TBF e comandos nativos da ferramenta.",
   "version": "0.1.0",
   "publisher": "dfs-Patrick",
   "engines": {
@@ -38,8 +38,13 @@
     "languages": [
       {
         "id": "tbf",
-        "aliases": ["TBF", "tbf"],
-        "extensions": [".tbf"],
+        "aliases": [
+          "TBF",
+          "tbf"
+        ],
+        "extensions": [
+          ".tbf"
+        ],
         "configuration": "./media/tbf-language-configuration.json"
       }
     ],
@@ -48,7 +53,9 @@
         "language": "tbf",
         "scopeName": "source.tbf",
         "path": "./media/tbf.tmLanguage.json",
-        "embeddedLanguages": { "source.json": "json" }
+        "embeddedLanguages": {
+          "source.json": "json"
+        }
       }
     ],
     "customEditors": [
@@ -120,7 +127,7 @@
     "viewsWelcome": [
       {
         "view": "p2.files",
-        "contents": "Abra a pasta do projeto no Dev Container.\nColoque sua ISO em lab/iso/p2is.iso.\n[Extrair ISO](command:p2.extract)",
+        "contents": "Abra a pasta do projeto nativo.\nColoque sua ISO em lab/iso/p2is.iso.\n[Extrair ISO](command:p2.extract)",
         "when": "view == p2.files"
       }
     ],
@@ -168,8 +175,8 @@
         },
         "p2.cliPath": {
           "type": "string",
-          "default": "/opt/p2-tool/dist/cli/mod.js",
-          "description": "CLI compilada dentro do container."
+          "default": "",
+          "description": "CLI compilada. Vazio detecta o pacote local ou o Dev Container."
         },
         "p2.font": {
           "type": "string",
@@ -186,6 +193,11 @@
           "type": "boolean",
           "default": false,
           "description": "Compilar e abrir no PPSSPP ao salvar. Requer a extensão PPSSPP Host no Windows."
+        },
+        "p2.nodePath": {
+          "type": "string",
+          "default": "",
+          "description": "Caminho do Node. Vazio usa runtime incluído ou node do PATH."
         }
       }
     }

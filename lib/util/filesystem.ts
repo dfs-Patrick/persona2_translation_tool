@@ -23,30 +23,30 @@ export const unlockFile = (file: FileType) => giveMutex(file.lock);
 const MAX_OPEN_FILES = 100;
 const fileSem = Semaphore.new(MAX_OPEN_FILES);
 
-export const openFileRead = async (path: string): Promise<FileType> => {
-  await takeSemaphore(fileSem);
-  return {
-    handle: await fs.open(path, "r"),
-    lock: Mutex.new(),
-  };
-};
-export const openFileWrite = async (path: string): Promise<FileType> => {
-  await takeSemaphore(fileSem);
-  return {
-    handle: await fs.open(path, "w+"),
-    lock: Mutex.new(),
-  };
-};
-export const closeFile = async (file: FileType) => {
-  await lockFile(file);
-  await file.handle.close();
-  unlockFile(file); //here to catch errors
-  giveSemaphore(fileSem);
+// Short operations have a separate pool: they may run while a streaming
+// handle is held, so sharing its pool could deadlock archive extraction.
+const operationSem = Semaphore.new(16);
+const withFileOperation = async <T>(operation: () => Promise<T>): Promise<T> => {
+  await takeSemaphore(operationSem);
+  try { return await operation(); }
+  finally { giveSemaphore(operationSem); }
 };
 
-export const copyFile = async (from: string, to: string) => {
-  await fs.cp(from, to);
+const openFile = async (path: string, flags: string): Promise<FileType> => {
+  await takeSemaphore(fileSem);
+  try { return { handle: await fs.open(path, flags), lock: Mutex.new() }; }
+  catch (error) { giveSemaphore(fileSem); throw error; }
 };
+export const openFileRead = (path: string): Promise<FileType> => openFile(path, "r");
+export const openFileWrite = (path: string): Promise<FileType> => openFile(path, "w+");
+export const closeFile = async (file: FileType) => {
+  await lockFile(file);
+  try { await file.handle.close(); }
+  finally { unlockFile(file); giveSemaphore(fileSem); }
+};
+
+export const copyFile = (from: string, to: string) =>
+  withFileOperation(() => fs.cp(from, to));
 
 export async function* readAsStream(
   file: FileType,
@@ -112,10 +112,10 @@ export const mkdir = async (path: string): Promise<void> => {
   await fs.mkdir(path, { recursive: true });
 };
 export const readTextFile = async (path: string): Promise<string> => {
-  return await fs.readFile(path, { encoding: "utf-8" });
+  return await withFileOperation(() => fs.readFile(path, { encoding: "utf-8" }));
 };
 export const readBinaryFile = async (path: string): Promise<Uint8Array> => {
-  return await fs.readFile(path);
+  return await withFileOperation(() => fs.readFile(path));
 };
 export const readTextFileSync = (path: string): string => {
   return fs_sync.readFileSync(path, { encoding: "utf-8" });
@@ -124,10 +124,10 @@ export const readBinaryFileSync = (path: string): Uint8Array => {
   return fs_sync.readFileSync(path);
 };
 export const writeTextFile = async (path: string, data: string) => {
-  await fs.writeFile(path, data);
+  await withFileOperation(() => fs.writeFile(path, data));
 };
 export const writeBinaryFile = async (path: string, data: Uint8Array) => {
-  await fs.writeFile(path, data);
+  await withFileOperation(() => fs.writeFile(path, data));
 };
 
 interface FileStat {

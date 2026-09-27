@@ -1,3 +1,7 @@
+> O launcher `scripts/p2-tool.ps1` agora executa nativamente. Para o novo fluxo,
+> consulte [Windows nativo](windows-native.md). Os comandos Docker diretos abaixo
+> continuam disponíveis como alternativa.
+
 # Windows manual: Docker, PowerShell e PPSSPP
 
 Este é o fluxo técnico para controlar a ferramenta pelo PowerShell, sem usar o

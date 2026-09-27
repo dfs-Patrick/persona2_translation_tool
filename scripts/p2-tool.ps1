@@ -1,4 +1,4 @@
-# Windows host launcher. Docker runs the tool; PPSSPP runs on Windows.
+# Native Windows launcher. Uses the bundled Node runtime, or Node from PATH.
 [CmdletBinding()]
 param(
     [ValidateSet("setup", "extract", "rebuild", "run", "rebuild-run")]
@@ -12,13 +12,22 @@ $projectDir = Split-Path -Parent $PSScriptRoot
 $labDir = Join-Path $projectDir "lab"
 $isoPath = Join-Path $labDir "p2is-translated.iso"
 $statePath = Join-Path $labDir ".ppsspp-session.json"
-$composePath = Join-Path $projectDir "compose.yaml"
 $workflowLock = $null
+$exePath = Join-Path $projectDir "Persona2Tool.exe"
+$nodePath = Join-Path $projectDir "runtime/node.exe"
+if (-not (Test-Path -LiteralPath $nodePath)) { $nodePath = "node" }
 
-function Invoke-ToolDocker {
-    param([string[]]$DockerArguments)
-    & docker compose --project-directory $projectDir -f $composePath @DockerArguments
-    if ($LASTEXITCODE -ne 0) { throw "Docker terminou com codigo $LASTEXITCODE. Consulte a saida acima." }
+function Invoke-ToolNative {
+    param([string[]]$ToolArguments)
+    Push-Location $projectDir
+    try {
+        if (Test-Path -LiteralPath $exePath) {
+            & $exePath @ToolArguments
+        } else {
+            & $nodePath (Join-Path $projectDir "dist/cli/mod.js") @ToolArguments
+        }
+        if ($LASTEXITCODE -ne 0) { throw "Ferramenta terminou com codigo $LASTEXITCODE. Consulte a saida acima." }
+    } finally { Pop-Location }
 }
 
 function Stop-OwnedEmulator {
@@ -64,25 +73,19 @@ try {
         }
         $script:PpssppPath = (Resolve-Path -LiteralPath $PpssppPath).Path
     }
-    if ($Action -ne "run") {
-        if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-            throw "Instale e inicie o Docker Desktop com containers Linux antes de continuar."
-        }
-        $engine = & docker info --format '{{.OSType}}'
-        if ($LASTEXITCODE -ne 0 -or $engine -ne "linux") {
-            throw "O Docker Desktop precisa estar iniciado e usando containers Linux."
-        }
+    if ($Action -ne "run" -and -not (Test-Path -LiteralPath $exePath) -and -not (Test-Path -LiteralPath (Join-Path $projectDir "dist/cli/mod.js"))) {
+        throw "CLI ausente. Use o pacote nativo completo ou execute npm ci e npm run build no codigo-fonte."
     }
 
     if ($Action -eq "setup") {
-        Invoke-ToolDocker -DockerArguments @("build", "tool")
+        Invoke-ToolNative -ToolArguments @("--help")
         Write-Host "Ferramenta pronta. Coloque sua ISO em lab/iso/p2is.iso e execute -Action extract."
         Write-Host "Pasta para adicionar a ISO pelo Explorador de Arquivos: $(Join-Path $labDir 'iso')"
     } elseif ($Action -eq "extract") {
         if (Test-Path -LiteralPath (Join-Path $labDir "translation/en/new/messages")) {
             throw "Ja existe uma traducao neste projeto. Use outro workspace para extrair sem sobrescrever seus TBFs."
         }
-        Invoke-ToolDocker -DockerArguments @("run", "--rm", "--no-deps", "-T", "tool", "extractAll",
+        Invoke-ToolNative -ToolArguments @("extractAll",
             "lab/iso/p2is.iso", "-o", "lab/dump", "--translation-output", "lab/translation/en",
             "--game", "is", "--variant", "us", "--locale", "en")
         Write-Host "Extracao concluida. Edite os TBFs em: $(Join-Path $labDir 'translation/en/new/messages')"
@@ -90,10 +93,10 @@ try {
         # Release the ISO file before rebuilding, including on Windows.
         Stop-OwnedEmulator
         if ($Action -ne "run") {
-            $arguments = @("run", "--rm", "--no-deps", "-T", "tool", "rebuildTbf",
+            $arguments = @("rebuildTbf",
                 "lab/iso/p2is.iso", "lab/translation/en", "--game", "is", "--variant", "us", "--locale", "en")
             if ($Font) { $arguments += @("--font", $Font) }
-            Invoke-ToolDocker -DockerArguments $arguments
+            Invoke-ToolNative -ToolArguments $arguments
             Write-Host "ISO criada: $isoPath"
         }
         if ($Action -in @("run", "rebuild-run")) { Start-Emulator }

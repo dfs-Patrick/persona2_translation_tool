@@ -29,14 +29,22 @@ function activate(context) {
   }
   function tool(args) {
     if (!vscode.workspace.isTrusted) throw new Error('Confie no workspace antes de executar comandos.');
-    if (process.platform !== 'linux' || !fs.existsSync('/.dockerenv')) throw new Error('Use Dev Containers: Reopen in Container para executar a ferramenta.');
     if (child) throw new Error('Outra operação já está em execução.');
-    const cli = cfg().get('cliPath');
-    if (!fs.existsSync(cli)) throw new Error(`CLI não encontrada: ${cli}. Reconstrua o Dev Container.`);
+    const executable = path.join(root(), process.platform === 'win32' ? 'Persona2Tool.exe' : 'Persona2Tool');
+    const useExecutable = fs.existsSync(executable);
+    const configuredCli = cfg().get('cliPath');
+    const localCli = path.join(root(), 'dist', 'cli', 'mod.js');
+    const cli = configuredCli ? path.resolve(root(), configuredCli) : (fs.existsSync(localCli) ? localCli : '/opt/p2-tool/dist/cli/mod.js');
+    const bundledNode = path.join(root(), 'runtime', process.platform === 'win32' ? 'node.exe' : 'node');
+    const configuredNode = cfg().get('nodePath');
+    const node = configuredNode ? path.resolve(root(), configuredNode) : (fs.existsSync(bundledNode) ? bundledNode : 'node');
+    if (!useExecutable && !fs.existsSync(cli)) throw new Error(`CLI não encontrada: ${cli}. Use o pacote nativo completo ou compile o projeto.`);
+    const command = useExecutable ? executable : node;
+    const commandArgs = useExecutable ? args : [cli, ...args];
     output.show(true);
-    output.appendLine(`\n> node ${cli} ${args.join(' ')}`);
+    output.appendLine(`\n> ${command} ${commandArgs.join(' ')}`);
     return new Promise((resolve, reject) => {
-      const running = spawn('node', [cli, ...args], { cwd: root(), shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
+      const running = spawn(command, commandArgs, { cwd: root(), shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
       child = running;
       running.stdout.on('data', data => output.append(data.toString()));
       running.stderr.on('data', data => output.append(data.toString()));

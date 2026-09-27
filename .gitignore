@@ -23,3 +23,5 @@ dist
 *.vsix
 !vscode-extension/p2-tbf-editor.vsix
 !vscode-ppsspp-host/p2-ppsspp-host.vsix
+
+/release/
