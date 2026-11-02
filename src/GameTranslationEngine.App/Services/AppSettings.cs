@@ -15,6 +15,8 @@ public sealed class AppSettings
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "P2Tool", "settings.json");
 
     public List<string> RecentProjects { get; set; } = [];
+    public string? LibreSpritePath { get; set; }
+    public string? GimpPath { get; set; }
 
     public static AppSettings Load()
     {

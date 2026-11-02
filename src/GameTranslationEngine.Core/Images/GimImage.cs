@@ -7,7 +7,7 @@ namespace GameTranslationEngine.Core.Images;
 /// It can be turned into RGBA and its pixels replaced in place: the file
 /// keeps its size, format and palette, so whatever points into it stays valid.
 /// </summary>
-public sealed class GimImage
+public sealed class GimImage : IImageInfo
 {
     private enum Format : ushort { Rgb5650 = 0, Rgba5551 = 1, Rgba4444 = 2, Rgba8888 = 3, Index4 = 4, Index8 = 5 }
 
@@ -28,16 +28,23 @@ public sealed class GimImage
     private readonly Plane _image;
     private readonly uint[] _palette;
 
-    private GimImage(byte[] data, Plane image, uint[] palette)
+    private GimImage(byte[] data, Plane image, Plane? palettePlane, uint[] palette)
     {
         _data = data;
         _image = image;
+        PaletteFormat = palettePlane is null ? "Sem paleta (cor direta)" : FormatName(palettePlane.Format);
         _palette = palette;
     }
 
     public int Width => _image.Width;
     public int Height => _image.Height;
     public int ColorCount => _palette.Length;
+    public int BitsPerPixel => _image.Bpp;
+    public string PixelFormat => FormatName(_image.Format);
+    public string PaletteFormat { get; }
+    public bool IsSwizzled => _image.Swizzled;
+    public string ColorProfile => "Não incorporado (GIM/PSP)";
+    public string GridDescription => IsSwizzled ? "Swizzled (16 bytes × 8 linhas)" : "Linear";
 
     public static GimImage Read(ReadOnlySpan<byte> file)
     {
@@ -47,13 +54,27 @@ public sealed class GimImage
         Plane? image = null, palette = null;
         Walk(data, 16, data.Length, ref image, ref palette);
         if (image is null) throw new InvalidDataException("GIM sem bloco de imagem.");
-        if (image.Format is not (Format.Index4 or Format.Index8))
-            throw new NotSupportedException($"GIM com formato {image.Format}; só imagens indexadas são suportadas.");
-        if (palette is null) throw new InvalidDataException("GIM indexado sem paleta.");
-        var colors = new uint[palette.Width * palette.Height];
-        for (var i = 0; i < colors.Length; i++) colors[i] = ReadColor(data, palette, i % palette.Width, i / palette.Width);
-        return new GimImage(data, image, colors);
+        if (image.Format is not (Format.Rgb5650 or Format.Rgba5551 or Format.Rgba4444 or Format.Rgba8888 or Format.Index4 or Format.Index8))
+            throw new NotSupportedException($"Formato de imagem GIM não suportado: {image.Format}.");
+        if ((image.Format is Format.Index4 or Format.Index8) && palette is null)
+            throw new InvalidDataException("GIM indexado sem paleta.");
+        var colors = palette is null ? [] : new uint[palette.Width * palette.Height];
+        if (palette is not null)
+            for (var i = 0; i < colors.Length; i++)
+                colors[i] = ReadColor(data, palette, i % palette.Width, i / palette.Width);
+        return new GimImage(data, image, palette, colors);
     }
+
+    private static string FormatName(Format format) => format switch
+    {
+        Format.Rgb5650 => "RGB 5650",
+        Format.Rgba5551 => "RGBA 5551",
+        Format.Rgba4444 => "RGBA 4444",
+        Format.Rgba8888 => "RGBA 8888",
+        Format.Index4 => "Indexado 4 bits",
+        Format.Index8 => "Indexado 8 bits",
+        _ => $"Formato GIM {(ushort)format}",
+    };
 
     private static void Walk(byte[] data, int start, int end, ref Plane? image, ref Plane? palette)
     {
@@ -124,8 +145,9 @@ public sealed class GimImage
         for (var y = 0; y < Height; y++)
         for (var x = 0; x < Width; x++)
         {
-            var index = Index(x, y);
-            var color = index < _palette.Length ? _palette[index] : 0;
+            var color = _image.Format is Format.Index4 or Format.Index8
+                ? (Index(x, y) is var index && index < _palette.Length ? _palette[index] : 0)
+                : ReadColor(_data, _image, x, y);
             BinaryPrimitives.WriteUInt32LittleEndian(image.Pixels.AsSpan(image.Offset(x, y)), color);
         }
         return image;
@@ -145,12 +167,46 @@ public sealed class GimImage
         for (var x = 0; x < Width; x++)
         {
             var color = BinaryPrimitives.ReadUInt32LittleEndian(image.Pixels.AsSpan(image.Offset(x, y)));
-            if (!cache.TryGetValue(color, out var index)) cache[color] = index = Closest(color);
             var at = _image.PixelStart + _image.ByteOffset(x, y);
-            if (_image.Format == Format.Index8) data[at] = (byte)index;
-            else data[at] = (x & 1) == 0 ? (byte)(data[at] & 0xF0 | index) : (byte)(data[at] & 0x0F | index << 4);
+            if (_image.Format is Format.Index4 or Format.Index8)
+            {
+                if (!cache.TryGetValue(color, out var index)) cache[color] = index = Closest(color);
+                if (_image.Format == Format.Index8) data[at] = (byte)index;
+                else data[at] = (x & 1) == 0 ? (byte)(data[at] & 0xF0 | index) : (byte)(data[at] & 0x0F | index << 4);
+            }
+            else
+            {
+                WriteColor(data, _image, x, y, color);
+            }
         }
         return data;
+    }
+
+    private static void WriteColor(byte[] data, Plane plane, int x, int y, uint color)
+    {
+        var at = plane.PixelStart + plane.ByteOffset(x, y);
+        var r = (byte)color;
+        var g = (byte)(color >> 8);
+        var b = (byte)(color >> 16);
+        var a = (byte)(color >> 24);
+        switch (plane.Format)
+        {
+            case Format.Rgb5650:
+                BinaryPrimitives.WriteUInt16LittleEndian(data.AsSpan(at),
+                    (ushort)(r >> 3 | (g >> 2) << 5 | (b >> 3) << 11));
+                break;
+            case Format.Rgba5551:
+                BinaryPrimitives.WriteUInt16LittleEndian(data.AsSpan(at),
+                    (ushort)(r >> 3 | (g >> 3) << 5 | (b >> 3) << 10 | (a >= 128 ? 1 : 0) << 15));
+                break;
+            case Format.Rgba4444:
+                BinaryPrimitives.WriteUInt16LittleEndian(data.AsSpan(at),
+                    (ushort)(r >> 4 | (g >> 4) << 4 | (b >> 4) << 8 | (a >> 4) << 12));
+                break;
+            case Format.Rgba8888:
+                BinaryPrimitives.WriteUInt32LittleEndian(data.AsSpan(at), color);
+                break;
+        }
     }
 
     private int Closest(uint color)

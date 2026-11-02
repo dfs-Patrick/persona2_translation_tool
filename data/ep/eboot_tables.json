@@ -1,0 +1,77 @@
+{
+  "comment": "Tabelas do EBOOT do EP (ULJM-06081) com a posição de cada arquivo dentro dos containers. Endereços da v1 (game/ep/toc.json, versão NPJH50581), conferidos contra a ISO ULJM: a ferramenta só grava depois de ver que a tabela original corresponde ao container original. F_BE.BNP (textos de depuração) não entra.",
+  "tables": [
+    {
+      "file": "event.bin",
+      "format": "ear",
+      "address": "0x08C570C4"
+    },
+    {
+      "file": "DNGSCN.BNP",
+      "format": "bnp_sector",
+      "address": "0x08D15338",
+      "sizeAdjust": 0
+    },
+    {
+      "file": "MMAP01.BNP",
+      "format": "bnp_sector",
+      "address": "0x08CB0464",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "MMAP02.BNP",
+      "format": "bnp_sector",
+      "address": "0x08CB03BC",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "MMAP03.BNP",
+      "format": "bnp_sector",
+      "address": "0x08CB0314",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "MMAP04.BNP",
+      "format": "bnp_sector",
+      "address": "0x08CB0244",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "MMAP05.BNP",
+      "format": "bnp_sector",
+      "address": "0x08CB01A4",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "MMAP06.BNP",
+      "format": "bnp_sector",
+      "address": "0x08CB0114",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "MMAP07.BNP",
+      "format": "bnp_sector",
+      "address": "0x08CB00F4",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "P_DEMO.BNP",
+      "format": "off32",
+      "address": "0x08D2D890"
+    },
+    {
+      "file": "P_DEMO.BNP",
+      "format": "off32",
+      "address": "0x08D2E5F0"
+    }
+  ],
+  "sizeInstructions": [
+    {
+      "file": "CD_SHOP.BIN",
+      "addresses": [
+        "0x08A9B994",
+        "0x08A9B998"
+      ]
+    }
+  ]
+}

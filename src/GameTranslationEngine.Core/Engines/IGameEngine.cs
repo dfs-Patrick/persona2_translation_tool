@@ -1,5 +1,6 @@
 using GameTranslationEngine.Core.Build;
 using GameTranslationEngine.Core.Extraction;
+using GameTranslationEngine.Core.Images;
 using GameTranslationEngine.Core.Iso;
 using GameTranslationEngine.Core.Projects;
 
@@ -33,6 +34,9 @@ public interface IGameEngine
     TranslationAreaReport GenerateTranslationArea(IsoIndex iso, string messagesDirectory,
         IProgress<double>? progress, CancellationToken cancellation);
 
+    /// <summary>Images the game contains in formats currently supported by the viewer.</summary>
+    IReadOnlyList<GameImageSource> DiscoverImages(IsoIndex iso);
+
     /// <summary>C1–C9 · Compiler of the project's translation into an ISO.</summary>
     IProjectCompiler CreateCompiler(TranslationProject project);
 
@@ -45,7 +49,7 @@ public interface IGameEngine
     /// <summary>Font tools, when the engine has them.</summary>
     IFontTools? Fonts { get; }
 
-    /// <summary>The game's logo or background for the interface (PNG), or null when there is none.</summary>
+    /// <summary>The game's logo or background for the interface (PNG or JPEG), or null when there is none.</summary>
     Stream? OpenArtwork(Artwork kind);
 }
 
@@ -77,7 +81,7 @@ public interface IFontTools
 /// <summary>The engines the tool knows.</summary>
 public static class GameEngines
 {
-    public static readonly IReadOnlyList<IGameEngine> All = [new InnocentSinEngine()];
+    public static readonly IReadOnlyList<IGameEngine> All = [new InnocentSinEngine(), new EternalPunishmentEngine(), new ShinMegamiTenseiEngine()];
 
     /// <summary>Engine of projects created before engines existed.</summary>
     public static IGameEngine Default => All[0];

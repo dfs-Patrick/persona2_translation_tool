@@ -16,6 +16,8 @@ public class ProjectTests
             var created = await TranslationProject.CreateAsync(Path.Combine(root, "proj"), "Teste", TestIso.Path!);
             Assert.Equal("ULUS-10584", created.File.Iso.GameId);
             Assert.Equal(64, created.File.Iso.Sha256.Length);
+            Assert.True(File.Exists(created.DirectoryActiveIndexPath));
+            Assert.True(File.Exists(created.ImageTranslationControlPath));
 
             var opened = TranslationProject.Open(created.ProjectFilePath);
             Assert.Null(opened.CheckIso());
@@ -23,6 +25,46 @@ public class ProjectTests
             Assert.Equal(617, files.Count);
             Assert.Contains(files, f => f.RelativePath == "event.bin/e0000.tbf" && f.Group == "Eventos" && f.Label == "e0000");
         });
+    }
+
+    [Fact]
+    public void Project_indices_roundtrip_directory_labels_and_image_replacements()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"gte-index-{Guid.NewGuid():N}", "translation");
+        try
+        {
+            var directoriesPath = Path.Combine(root, "directory-active-index.json");
+            var imagesPath = Path.Combine(root, "image-translation-control.json");
+            var directories = ProjectIndexes.LoadDirectories(directoriesPath);
+            directories.Directories["card.bin"] = new DirectoryActiveEntry
+            {
+                Label = "Retratos",
+                Description = "Retratos dos personagens.",
+            };
+            ProjectIndexes.Save(directoriesPath, directories);
+
+            var images = ProjectIndexes.LoadImages(imagesPath);
+            images.Images["card.bin/portrait.gim"] = new ImageTranslationEntry
+            {
+                Replacement = "translation/images/portrait.png",
+                Description = "Foto de personagem; paleta adaptada.",
+            };
+            ProjectIndexes.Save(imagesPath, images);
+
+            var loadedDirectories = ProjectIndexes.LoadDirectories(directoriesPath);
+            var loadedImages = ProjectIndexes.LoadImages(imagesPath);
+            Assert.Equal(("Retratos", "Retratos dos personagens."),
+                (loadedDirectories.Directories["CARD.BIN"].Label, loadedDirectories.Directories["card.bin"].Description));
+            Assert.Equal("translation/images/portrait.png",
+                loadedImages.Images["card.bin/portrait.gim"].Replacement);
+            Assert.Equal("Foto de personagem; paleta adaptada.",
+                loadedImages.Images["card.bin/portrait.gim"].Description);
+        }
+        finally
+        {
+            var projectRoot = Directory.GetParent(root)!.FullName;
+            if (Directory.Exists(projectRoot)) Directory.Delete(projectRoot, recursive: true);
+        }
     }
 
     [Fact]

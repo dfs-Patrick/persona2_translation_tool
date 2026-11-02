@@ -1,0 +1,741 @@
+{
+  "comment": "Perfil PT-BR do EP: letras latinas (fonte de diálogo do IS PT-BR) nas células abaixo de 0x120 das páginas 0 e 1 (syscg.bin 5 e 6). cells: posição, caractere, coluna inicial e largura (com 1 coluna de espaço). eventToFont: códigos de kanji sem uso no texto, apontados para células livres. Gerado a partir das ISOs do EP e do IS.",
+  "pages": [
+    0,
+    1
+  ],
+  "cells": [
+    {
+      "position": "0x0e0",
+      "char": "A",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x0e1",
+      "char": "B",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x0e2",
+      "char": "C",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x0e3",
+      "char": "D",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x0e4",
+      "char": "E",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x0e5",
+      "char": "F",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x0e6",
+      "char": "G",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x0e7",
+      "char": "H",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x0e8",
+      "char": "I",
+      "left": 0,
+      "width": 5
+    },
+    {
+      "position": "0x0e9",
+      "char": "J",
+      "left": 0,
+      "width": 7
+    },
+    {
+      "position": "0x0ea",
+      "char": "K",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x0eb",
+      "char": "L",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x0ec",
+      "char": "M",
+      "left": 0,
+      "width": 13
+    },
+    {
+      "position": "0x0ed",
+      "char": "N",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x0ee",
+      "char": "O",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x0ef",
+      "char": "P",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x0f0",
+      "char": "Q",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x0f1",
+      "char": "R",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x0f2",
+      "char": "S",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x0f3",
+      "char": "T",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x0f4",
+      "char": "U",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x0f5",
+      "char": "V",
+      "left": 0,
+      "width": 13
+    },
+    {
+      "position": "0x0f6",
+      "char": "W",
+      "left": 0,
+      "width": 15
+    },
+    {
+      "position": "0x0f7",
+      "char": "X",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x0f8",
+      "char": "Y",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x0f9",
+      "char": "Z",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x101",
+      "char": "a",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x102",
+      "char": "b",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x103",
+      "char": "c",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x104",
+      "char": "d",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x105",
+      "char": "e",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x106",
+      "char": "f",
+      "left": 0,
+      "width": 6
+    },
+    {
+      "position": "0x107",
+      "char": "g",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x108",
+      "char": "h",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x109",
+      "char": "i",
+      "left": 0,
+      "width": 4
+    },
+    {
+      "position": "0x10a",
+      "char": "j",
+      "left": 0,
+      "width": 6
+    },
+    {
+      "position": "0x10b",
+      "char": "k",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x10c",
+      "char": "l",
+      "left": 0,
+      "width": 4
+    },
+    {
+      "position": "0x10d",
+      "char": "m",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x10e",
+      "char": "n",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x10f",
+      "char": "o",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x110",
+      "char": "p",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x111",
+      "char": "q",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x112",
+      "char": "r",
+      "left": 0,
+      "width": 7
+    },
+    {
+      "position": "0x113",
+      "char": "s",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x114",
+      "char": "t",
+      "left": 0,
+      "width": 6
+    },
+    {
+      "position": "0x115",
+      "char": "u",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x116",
+      "char": "v",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x117",
+      "char": "w",
+      "left": 0,
+      "width": 13
+    },
+    {
+      "position": "0x118",
+      "char": "x",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x119",
+      "char": "y",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x11a",
+      "char": "z",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x0cf",
+      "char": "0",
+      "left": 0,
+      "width": 13
+    },
+    {
+      "position": "0x0d0",
+      "char": "1",
+      "left": 0,
+      "width": 7
+    },
+    {
+      "position": "0x0d1",
+      "char": "2",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x0d2",
+      "char": "3",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x0d3",
+      "char": "4",
+      "left": 0,
+      "width": 13
+    },
+    {
+      "position": "0x0d4",
+      "char": "5",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x0d5",
+      "char": "6",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x0d6",
+      "char": "7",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x0d7",
+      "char": "8",
+      "left": 0,
+      "width": 13
+    },
+    {
+      "position": "0x0d8",
+      "char": "9",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x003",
+      "char": ",",
+      "left": 0,
+      "width": 5
+    },
+    {
+      "position": "0x004",
+      "char": ".",
+      "left": 0,
+      "width": 4
+    },
+    {
+      "position": "0x009",
+      "char": "!",
+      "left": 0,
+      "width": 4
+    },
+    {
+      "position": "0x008",
+      "char": "?",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x006",
+      "char": ":",
+      "left": 0,
+      "width": 4
+    },
+    {
+      "position": "0x007",
+      "char": ";",
+      "left": 0,
+      "width": 4
+    },
+    {
+      "position": "0x026",
+      "char": "'",
+      "left": 0,
+      "width": 4
+    },
+    {
+      "position": "0x028",
+      "char": "\"",
+      "left": 0,
+      "width": 6
+    },
+    {
+      "position": "0x03c",
+      "char": "-",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x029",
+      "char": "(",
+      "left": 0,
+      "width": 6
+    },
+    {
+      "position": "0x02a",
+      "char": ")",
+      "left": 0,
+      "width": 6
+    },
+    {
+      "position": "0x01e",
+      "char": "/",
+      "left": 0,
+      "width": 15
+    },
+    {
+      "position": "0x053",
+      "char": "%",
+      "left": 0,
+      "width": 15
+    },
+    {
+      "position": "0x055",
+      "char": "&",
+      "left": 0,
+      "width": 13
+    },
+    {
+      "position": "0x03b",
+      "char": "+",
+      "left": 0,
+      "width": 13
+    },
+    {
+      "position": "0x041",
+      "char": "=",
+      "left": 0,
+      "width": 13
+    },
+    {
+      "position": "0x056",
+      "char": "*",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x023",
+      "char": "…",
+      "left": 0,
+      "width": 13
+    },
+    {
+      "position": "0x020",
+      "char": "~",
+      "left": 0,
+      "width": 14
+    },
+    {
+      "position": "0x0b4",
+      "char": "♪",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x03f",
+      "char": " ",
+      "left": 0,
+      "width": 5
+    },
+    {
+      "position": "0x07a",
+      "char": "á",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x07b",
+      "char": "à",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x07c",
+      "char": "â",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x07d",
+      "char": "ã",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x07e",
+      "char": "ç",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x07f",
+      "char": "è",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x080",
+      "char": "é",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x081",
+      "char": "ê",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x082",
+      "char": "í",
+      "left": 0,
+      "width": 5
+    },
+    {
+      "position": "0x083",
+      "char": "ó",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x084",
+      "char": "ô",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x085",
+      "char": "õ",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x086",
+      "char": "ú",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x087",
+      "char": "ü",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x088",
+      "char": "ñ",
+      "left": 0,
+      "width": 9
+    },
+    {
+      "position": "0x089",
+      "char": "Á",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x08a",
+      "char": "À",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x08b",
+      "char": "Â",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x08c",
+      "char": "Ã",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x08d",
+      "char": "Ç",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x08e",
+      "char": "È",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x08f",
+      "char": "É",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x090",
+      "char": "Ê",
+      "left": 0,
+      "width": 10
+    },
+    {
+      "position": "0x091",
+      "char": "Í",
+      "left": 0,
+      "width": 6
+    },
+    {
+      "position": "0x092",
+      "char": "Ó",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x093",
+      "char": "Ô",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x094",
+      "char": "Õ",
+      "left": 0,
+      "width": 12
+    },
+    {
+      "position": "0x095",
+      "char": "Ú",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x096",
+      "char": "Ü",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x097",
+      "char": "Ñ",
+      "left": 0,
+      "width": 11
+    },
+    {
+      "position": "0x098",
+      "char": "º",
+      "left": 0,
+      "width": 7
+    },
+    {
+      "position": "0x099",
+      "char": "ª",
+      "left": 0,
+      "width": 7
+    },
+    {
+      "position": "0x09a",
+      "char": "_",
+      "left": 0,
+      "width": 13
+    }
+  ],
+  "eventToFont": {
+    "0x0267": "0x03f",
+    "0x0282": "0x07a",
+    "0x0284": "0x07b",
+    "0x0291": "0x07c",
+    "0x0295": "0x07d",
+    "0x02a8": "0x07e",
+    "0x02b1": "0x07f",
+    "0x02d3": "0x080",
+    "0x0344": "0x081",
+    "0x034a": "0x082",
+    "0x034b": "0x083",
+    "0x034e": "0x084",
+    "0x0395": "0x085",
+    "0x03f0": "0x086",
+    "0x042e": "0x087",
+    "0x042f": "0x088",
+    "0x045e": "0x089",
+    "0x0476": "0x08a",
+    "0x0479": "0x08b",
+    "0x047d": "0x08c",
+    "0x0495": "0x08d",
+    "0x0497": "0x08e",
+    "0x04a0": "0x08f",
+    "0x04b7": "0x090",
+    "0x04c1": "0x091",
+    "0x04c4": "0x092",
+    "0x04c5": "0x093",
+    "0x04ce": "0x094",
+    "0x04cf": "0x095",
+    "0x04d1": "0x096",
+    "0x04d8": "0x097",
+    "0x04d9": "0x098",
+    "0x04e6": "0x099",
+    "0x04e8": "0x09a"
+  }
+}

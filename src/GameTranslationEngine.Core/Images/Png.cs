@@ -63,6 +63,8 @@ public static class Png
         {
             var length = BinaryPrimitives.ReadInt32BigEndian(data[position..]);
             var name = Encoding.ASCII.GetString(data.Slice(position + 4, 4));
+            if (length < 0 || position + 12L + length > data.Length)
+                throw new InvalidDataException($"Bloco PNG {name} truncado ou inválido.");
             var body = data.Slice(position + 8, length);
             position += 12 + length;
             switch (name)
@@ -80,6 +82,9 @@ public static class Png
                 case "IEND": position = data.Length; break;
             }
         }
+        if (width <= 0 || height <= 0 || width > 16384 || height > 16384
+            || (long)width * height > 16_777_216)
+            throw new InvalidDataException($"Dimensões PNG inválidas ou grandes demais: {width}×{height}.");
         if (depth != 8 || interlace != 0)
             throw new InvalidDataException($"PNG não suportado (profundidade {depth}, entrelaçado {interlace}); salve como RGBA de 8 bits.");
         var channels = type switch

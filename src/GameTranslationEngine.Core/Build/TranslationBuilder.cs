@@ -9,6 +9,7 @@ using GameTranslationEngine.Core.GameData;
 using GameTranslationEngine.Core.Images;
 using GameTranslationEngine.Core.IO;
 using GameTranslationEngine.Core.Iso;
+using GameTranslationEngine.Core.Projects;
 using GameTranslationEngine.Core.Tbf;
 using GameTranslationEngine.Core.Text;
 
@@ -36,28 +37,38 @@ public sealed record BuildReport(
 /// </summary>
 public sealed class TranslationBuilder : GameTranslationEngine.Core.Engines.IProjectCompiler
 {
-    public const string EbootPath = "PSP_GAME/SYSDIR/EBOOT.BIN";
+    public const string EbootPath = GameBuildSpec.DefaultEbootPath;
 
     private readonly string _isoPath;
     private readonly string _messagesDirectory;
-    private readonly FontProfile? _font;
-    /// <summary>Reads the original ISO (the game's own character table).</summary>
+    private readonly GameBuildSpec _game;
+    private readonly string? _imageControlPath;
+    private readonly string? _projectRoot;
     private readonly MessageContext _isoContext;
-    /// <summary>Encodes the translation (the font profile's character table).</summary>
     private readonly MessageContext _context;
 
-    /// <param name="font">Font profile to install; null keeps the game's font and character table.</param>
+    /// <summary>Innocent Sin. <paramref name="font"/>: profile to install; null keeps the game's font and character table.</summary>
     public TranslationBuilder(string isoPath, string messagesDirectory, FontProfile? font)
+        : this(isoPath, messagesDirectory, GameBuildSpec.InnocentSin(font))
+    {
+    }
+
+    public TranslationBuilder(string isoPath, string messagesDirectory, GameBuildSpec game)
+        : this(isoPath, messagesDirectory, game, null, null)
+    {
+    }
+
+    public TranslationBuilder(string isoPath, string messagesDirectory, GameBuildSpec game,
+        string? imageControlPath, string? projectRoot)
     {
         _isoPath = isoPath;
         _messagesDirectory = messagesDirectory;
-        _font = font;
-        var constants = ConstantTables.LoadInnocentSin();
-        _isoContext = new MessageContext(EventEncoding.LoadInnocentSinEnglish(), constants);
-        _context = font is null ? _isoContext : new MessageContext(font.Encoding, constants);
+        _game = game;
+        _imageControlPath = imageControlPath;
+        _projectRoot = projectRoot;
+        _isoContext = game.IsoContext;
+        _context = game.Context;
     }
-
-    public FontProfile? Font => _font;
 
     /// <summary>C1/C2 only: checks every translation without writing anything.</summary>
     public BuildReport Validate(IProgress<(string Step, double Fraction)>? progress = null, CancellationToken cancellation = default)
@@ -65,8 +76,10 @@ public sealed class TranslationBuilder : GameTranslationEngine.Core.Engines.IPro
         var watch = Stopwatch.StartNew();
         using var iso = IsoIndex.Read(new FileByteSource(_isoPath));
         var issues = new List<BuildIssue>();
+        var imagePlan = PrepareImageReplacements(iso, issues, cancellation);
         var (compiled, files) = Compile(iso, issues, progress, cancellation);
-        return Report(issues, files, compiled, [], null, watch.Elapsed);
+        return Report(issues, files, compiled, imagePlan?.Entries.Values.Select(e => e.Name).ToList() ?? [], null,
+            watch.Elapsed);
     }
 
     /// <summary>C1–C9: compiles the translation and writes the ISO to <paramref name="output"/>.</summary>
@@ -79,12 +92,13 @@ public sealed class TranslationBuilder : GameTranslationEngine.Core.Engines.IPro
 
         using var iso = IsoIndex.Read(new FileByteSource(_isoPath));
         var issues = new List<BuildIssue>();
+        var imagePlan = PrepareImageReplacements(iso, issues, cancellation);
         var (compiled, files) = Compile(iso, issues, progress, cancellation);
-        if (issues.Any(i => i.Level == IssueLevel.Error))
+        if (issues.Any(i => i.Level == IssueLevel.Error) || imagePlan is null)
             return Report(issues, files, compiled, [], null, watch.Elapsed);
 
         // C3/C5 · scripts and containers, one CPK entry per task.
-        var catalog = TextSourceCatalog.LoadInnocentSin();
+        var catalog = _game.Catalog;
         var cpk = CpkIndex.Read(iso.Open(catalog.CpkPath));
         var changed = compiled.Where(c => c.HasChanges).ToList();
         var rebuilt = new ConcurrentBag<(RebuiltEntry Entry, IReadOnlyList<EntryLayout>? OriginalLayout)>();
@@ -95,41 +109,63 @@ public sealed class TranslationBuilder : GameTranslationEngine.Core.Engines.IPro
         Parallel.ForEach(groups, new ParallelOptions { CancellationToken = cancellation }, group =>
         {
             var cpkEntry = FindEntry(cpk, group.Key);
-            var content = cpk.ReadEntry(cpkEntry);
+            var originalContent = cpk.ReadEntry(cpkEntry);
+            var content = imagePlan!.Entries.TryGetValue(cpkEntry.Id, out var imageEntry)
+                ? imageEntry.Data
+                : originalContent;
             var entry = rebuilder.Rebuild(group.Key, content, group.ToList());
-            rebuilt.Add((entry, OriginalLayout(group.Key, content)));
+            rebuilt.Add((entry, OriginalLayout(group.Key, originalContent)));
             progress?.Report(("Remontando os containers", (double)Interlocked.Increment(ref done) / groups.Count));
         });
 
         // C4 · the font pages.
-        var fontTables = FontInstaller.Tables.LoadInnocentSin();
-        var replacements = rebuilt.ToDictionary(r => FindEntry(cpk, r.Entry.Entry).Id, r => r.Entry.Data);
-        IReadOnlyDictionary<int, RgbaImage>? pages = null;
-        byte[]? syscg = null;
-        if (_font is not null)
+        var font = _game.Font;
+        var replacements = imagePlan!.Entries.ToDictionary(pair => pair.Key, pair => pair.Value.Data);
+        foreach (var item in rebuilt)
+            replacements[FindEntry(cpk, item.Entry.Entry).Id] = item.Entry.Data;
+        byte[]? fontPages = null;
+        if (font is not null)
         {
             progress?.Report(("Gerando a fonte", 0));
-            var entry = cpk.FindByName(fontTables.PagesFile)
-                        ?? throw new InvalidDataException($"{fontTables.PagesFile} não encontrado no CPK.");
-            (syscg, pages) = FontInstaller.BuildPages(cpk.ReadEntry(entry), _font);
-            replacements[entry.Id] = syscg;
+            var entry = cpk.FindByName(font.PagesFile)
+                        ?? throw new InvalidDataException($"{font.PagesFile} não encontrado no CPK.");
+            fontPages = font.BuildPages(cpk.ReadEntry(entry));
+            replacements[entry.Id] = fontPages;
         }
 
         // C6 · the CPK.
         var cpkPlan = CpkRebuild.Plan(cpk, replacements);
 
-        // C7/C8 · EBOOT and placement in the ISO.
+        // C7 · EBOOT: container tables, sizes the code loads as immediates, font. The
+        // font may make the EBOOT grow (EP), so the ISO placement comes after it.
         var cpkFile = iso.Get(catalog.CpkPath);
         var elf = ElfImage.Parse(ReadExecutable(iso));
-        var placement = IsoRebuild.Plan(iso, [(catalog.CpkPath, cpkPlan.Length), (EbootPath, elf.Data.Length)]);
         var patcher = new EbootPatcher(elf);
-        var tables = EbootTable.LoadInnocentSin();
-        foreach (var (entry, originalLayout) in rebuilt)
+        var tables = _game.Tables;
+        var rebuiltById = rebuilt.ToDictionary(r => FindEntry(cpk, r.Entry.Entry).Id);
+        var modifiedContainerIds = rebuiltById.Keys.Concat(imagePlan.Entries.Keys).Distinct().ToList();
+        foreach (var id in modifiedContainerIds)
         {
-            foreach (var table in tables.Where(t => t.File.Equals(entry.Entry.Name, StringComparison.OrdinalIgnoreCase)))
-                patcher.UpdateTable(table, originalLayout!, entry.Layout!);
+            var cpkEntry = cpk.FindById(id) ?? throw new InvalidDataException($"Entrada {id} não existe no CPK.");
+            var hasTextChanges = rebuiltById.TryGetValue(id, out var textBuild);
+            var imageBuild = imagePlan.Entries.GetValueOrDefault(id);
+            var originalLayout = hasTextChanges ? textBuild.OriginalLayout : imageBuild?.OriginalLayout;
+            var newLayout = hasTextChanges ? textBuild.Entry.Layout : imageBuild?.NewLayout;
+            foreach (var table in tables.Where(t => t.File.Equals(cpkEntry.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                if (originalLayout is null || newLayout is null)
+                    throw new InvalidDataException($"Não foi possível determinar o layout de {cpkEntry.Name}.");
+                patcher.UpdateTable(table, originalLayout, newLayout);
+            }
+            foreach (var (file, addresses) in _game.SizeInstructions.Where(s => s.File.Equals(cpkEntry.Name, StringComparison.OrdinalIgnoreCase)))
+                patcher.UpdateImmediate(addresses, Align16(checked((int)cpkEntry.ExtractedSize)),
+                    Align16(replacements[id].Length), file);
         }
-        if (_font is not null) FontInstaller.PatchEboot(elf, _font, pages!, fontTables);
+        if (font is not null) elf = font.PatchExecutable(elf);
+        patcher = new EbootPatcher(elf);
+
+        // C8 · placement in the ISO.
+        var placement = IsoRebuild.Plan(iso, [(catalog.CpkPath, cpkPlan.Length), (_game.EbootPath, elf.Data.Length)]);
         var cpkPlacement = placement[catalog.CpkPath];
         if (cpkPlacement.Lba != cpkFile.Lba || cpkPlacement.Length != cpkFile.Size)
             patcher.UpdateDiscLocation(cpkFile.Lba, cpkFile.Size, cpkPlacement.Lba, (uint)cpkPlacement.Length);
@@ -139,15 +175,18 @@ public sealed class TranslationBuilder : GameTranslationEngine.Core.Engines.IPro
         placement.Write(output,
         [
             new IsoReplacement(catalog.CpkPath, cpkPlan.Length, stream => cpkPlan.WriteTo(stream, cancellation: cancellation)),
-            new IsoReplacement(EbootPath, elf.Data.Length, stream => stream.Write(elf.Data)),
+            new IsoReplacement(_game.EbootPath, elf.Data.Length, stream => stream.Write(elf.Data)),
         ], new Progress<double>(f => progress?.Report(("Gravando a ISO", f))), cancellation);
+        foreach (var (path, newName) in _game.HiddenDirectories) IsoHide.RenameDirectory(output, path, newName);
 
         // C9 · read the new ISO back and check it.
         progress?.Report(("Conferindo a ISO gerada", 0));
-        Verify(output, compiled, rebuilt.Select(r => r.Entry).ToList(), tables, cpkPlacement, issues, cancellation);
-        if (_font is not null) VerifyFont(output, syscg!, fontTables, issues);
+        Verify(output, compiled, rebuilt.Select(r => r.Entry).ToList(), replacements, tables, cpkPlacement, issues,
+            cancellation);
+        if (font is not null) VerifyFont(output, font, fontPages!, issues);
 
-        var names = rebuilt.Select(r => r.Entry.Entry.Name).Order(StringComparer.OrdinalIgnoreCase).ToList();
+        var names = modifiedContainerIds.Select(id => cpk.FindById(id)!.Name)
+            .Order(StringComparer.OrdinalIgnoreCase).ToList();
         return Report(issues, files, compiled, names, issues.Any(i => i.Level == IssueLevel.Error) ? null : output, watch.Elapsed);
     }
 
@@ -155,7 +194,7 @@ public sealed class TranslationBuilder : GameTranslationEngine.Core.Engines.IPro
         IProgress<(string Step, double Fraction)>? progress, CancellationToken cancellation)
     {
         progress?.Report(("Lendo os textos da ISO", 0));
-        var texts = new TextExtractor(iso, context: _isoContext)
+        var texts = new TextExtractor(iso, _game.Catalog, _isoContext)
             .ExtractAll(new Progress<double>(f => progress?.Report(("Lendo os textos da ISO", f))), cancellation);
         var documents = LoadDocuments(issues, out var files);
 
@@ -169,6 +208,45 @@ public sealed class TranslationBuilder : GameTranslationEngine.Core.Engines.IPro
             compiled.Add(compiler.Compile(text, document, issues));
         }
         return (compiled, files);
+    }
+
+    private ImageReplacementPlan? PrepareImageReplacements(
+        IsoIndex iso,
+        List<BuildIssue> issues,
+        CancellationToken cancellation)
+    {
+        if (_imageControlPath is null && _projectRoot is null)
+            return new ImageReplacementPlan(new Dictionary<int, RebuiltImageEntry>(), []);
+        if (_imageControlPath is null || _projectRoot is null)
+        {
+            issues.Add(new BuildIssue(IssueLevel.Error, _imageControlPath ?? "image-translation-control.json", null,
+                "O caminho do índice ou da pasta do projeto não foi configurado."));
+            return null;
+        }
+        if (!File.Exists(_imageControlPath))
+        {
+            issues.Add(new BuildIssue(IssueLevel.Error, _imageControlPath, null,
+                "Índice de substituições de imagem não encontrado."));
+            return null;
+        }
+
+        try
+        {
+            var control = ProjectIndexes.LoadImages(_imageControlPath);
+            if (!control.Images.Values.Any(entry => !string.IsNullOrWhiteSpace(entry.Replacement)))
+                return new ImageReplacementPlan(new Dictionary<int, RebuiltImageEntry>(), []);
+
+            var cpk = CpkIndex.Read(iso.Open(_game.Catalog.CpkPath));
+            return ImageReplacementBuilder.Build(iso, cpk, _game.Catalog.CpkPath, _projectRoot, control,
+                cancellation);
+        }
+        catch (Exception error) when (error is IOException or InvalidDataException or NotSupportedException
+                                          or UnauthorizedAccessException or ArgumentException)
+        {
+            issues.Add(new BuildIssue(IssueLevel.Error, _imageControlPath, null,
+                $"Substituição de imagem inválida: {error.Message}"));
+            return null;
+        }
     }
 
     /// <summary>The project's message TBF files, by the original location in their header.</summary>
@@ -216,17 +294,20 @@ public sealed class TranslationBuilder : GameTranslationEngine.Core.Engines.IPro
         _ => null,
     };
 
-    private static byte[] ReadExecutable(IsoIndex iso)
+    private static int Align16(int value) => (value + 15) & ~15;
+
+    private byte[] ReadExecutable(IsoIndex iso)
     {
-        var data = iso.Open(EbootPath).ReadAll();
+        var data = iso.Open(_game.EbootPath).ReadAll();
         return PrxDecrypter.IsEncrypted(data) ? PrxDecrypter.Decrypt(data) : data;
     }
 
     private void Verify(string output, IReadOnlyList<CompiledText> compiled, IReadOnlyList<RebuiltEntry> rebuilt,
-        IReadOnlyList<EbootTable> tables, IsoPlacement cpkPlacement, List<BuildIssue> issues, CancellationToken cancellation)
+        IReadOnlyDictionary<int, byte[]> replacements, IReadOnlyList<EbootTable> tables, IsoPlacement cpkPlacement,
+        List<BuildIssue> issues, CancellationToken cancellation)
     {
         using var iso = IsoIndex.Read(new FileByteSource(output));
-        var texts = new TextExtractor(iso, context: _context).ExtractAll(cancellation: cancellation);
+        var texts = new TextExtractor(iso, _game.Catalog, _context).ExtractAll(cancellation: cancellation);
         for (var i = 0; i < compiled.Count; i++)
         {
             var expected = compiled[i];
@@ -238,10 +319,17 @@ public sealed class TranslationBuilder : GameTranslationEngine.Core.Engines.IPro
                     "a ISO gerada não contém as mensagens compiladas."));
         }
 
-        var elf = ElfImage.Parse(iso.Open(EbootPath).ReadAll());
+        var elf = ElfImage.Parse(iso.Open(_game.EbootPath).ReadAll());
         var patcher = new EbootPatcher(elf);
-        var catalog = TextSourceCatalog.LoadInnocentSin();
+        var catalog = _game.Catalog;
         var cpk = CpkIndex.Read(iso.Open(catalog.CpkPath));
+        foreach (var (id, expected) in replacements)
+        {
+            var entry = cpk.FindById(id);
+            if (entry is null || !cpk.ReadEntry(entry).AsSpan().SequenceEqual(expected))
+                issues.Add(new BuildIssue(IssueLevel.Error, entry?.FullName ?? id.ToString(), null,
+                    "a ISO gerada não contém a substituição de imagem/arquivo esperada."));
+        }
         foreach (var entry in rebuilt)
         {
             var content = cpk.ReadEntry(FindEntry(cpk, entry.Entry));
@@ -255,17 +343,20 @@ public sealed class TranslationBuilder : GameTranslationEngine.Core.Engines.IPro
         if (cpkFile.Lba != cpkPlacement.Lba || cpkFile.Size != cpkPlacement.Length)
             issues.Add(new BuildIssue(IssueLevel.Error, catalog.CpkPath, null, "posição do CPK na ISO diferente da planejada."));
         if (elf.FindInSections(System.Text.Encoding.ASCII.GetBytes(EbootPatcher.DiscPath(cpkFile.Lba, cpkFile.Size) + "\0")).Count == 0)
-            issues.Add(new BuildIssue(IssueLevel.Error, EbootPath, null, "o EBOOT não aponta para a posição do CPK na ISO gerada."));
+            issues.Add(new BuildIssue(IssueLevel.Error, _game.EbootPath, null, "o EBOOT não aponta para a posição do CPK na ISO gerada."));
+        foreach (var (path, _) in _game.HiddenDirectories)
+            if (iso.Find(path) is not null)
+                issues.Add(new BuildIssue(IssueLevel.Error, path, null, "a pasta deveria estar escondida na ISO gerada."));
     }
 
-    private void VerifyFont(string output, byte[] syscg, FontInstaller.Tables tables, List<BuildIssue> issues)
+    private void VerifyFont(string output, IBuildFont font, byte[] pages, List<BuildIssue> issues)
     {
         using var iso = IsoIndex.Read(new FileByteSource(output));
-        var cpk = CpkIndex.Read(iso.Open(TextSourceCatalog.LoadInnocentSin().CpkPath));
-        if (!cpk.ReadEntry(cpk.FindByName(tables.PagesFile)!).AsSpan().SequenceEqual(syscg))
-            issues.Add(new BuildIssue(IssueLevel.Error, tables.PagesFile, null, "as páginas da fonte na ISO gerada não são as esperadas."));
-        if (!FontInstaller.IsInstalled(ElfImage.Parse(iso.Open(EbootPath).ReadAll()), _font!, tables))
-            issues.Add(new BuildIssue(IssueLevel.Error, EbootPath, null, "a tabela de caracteres da fonte não foi aplicada ao EBOOT."));
+        var cpk = CpkIndex.Read(iso.Open(_game.Catalog.CpkPath));
+        if (!cpk.ReadEntry(cpk.FindByName(font.PagesFile)!).AsSpan().SequenceEqual(pages))
+            issues.Add(new BuildIssue(IssueLevel.Error, font.PagesFile, null, "as páginas da fonte na ISO gerada não são as esperadas."));
+        if (!font.IsInstalled(ElfImage.Parse(iso.Open(_game.EbootPath).ReadAll())))
+            issues.Add(new BuildIssue(IssueLevel.Error, _game.EbootPath, null, "a fonte não foi aplicada ao EBOOT."));
     }
 
     private static BuildReport Report(List<BuildIssue> issues, int files, IReadOnlyList<CompiledText> compiled,

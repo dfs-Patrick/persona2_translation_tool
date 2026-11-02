@@ -36,7 +36,7 @@ public sealed record TextSource(string Type, IReadOnlyList<SourceStep> Chain)
     }
 }
 
-/// <summary>Catalog of the text files of the game (data/is/text_sources.json).</summary>
+/// <summary>Catalog of the text files of a game (data/&lt;game&gt;/text_sources.json).</summary>
 public sealed class TextSourceCatalog
 {
     private TextSourceCatalog(string cpkPath, IReadOnlyList<TextSource> sources)
@@ -48,9 +48,12 @@ public sealed class TextSourceCatalog
     public string CpkPath { get; }
     public IReadOnlyList<TextSource> Sources { get; }
 
-    public static TextSourceCatalog LoadInnocentSin()
+    public static TextSourceCatalog LoadInnocentSin() => Load("is");
+
+    /// <summary>Catalog shipped in data/<paramref name="game"/>/text_sources.json.</summary>
+    public static TextSourceCatalog Load(string game)
     {
-        using var document = GameResources.ReadJson("is/text_sources.json");
+        using var document = GameResources.ReadJson($"{game}/text_sources.json");
         var root = document.RootElement;
         var sources = root.GetProperty("sources").EnumerateArray().Select(source => new TextSource(
             source.GetProperty("type").GetString()!,

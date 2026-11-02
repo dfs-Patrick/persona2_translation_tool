@@ -2,6 +2,7 @@ using GameTranslationEngine.Core.Build;
 using GameTranslationEngine.Core.Extraction;
 using GameTranslationEngine.Core.Fonts;
 using GameTranslationEngine.Core.GameData;
+using GameTranslationEngine.Core.Images;
 using GameTranslationEngine.Core.Iso;
 using GameTranslationEngine.Core.Projects;
 using GameTranslationEngine.Core.Text;
@@ -27,13 +28,18 @@ public sealed class InnocentSinEngine : IGameEngine
         IProgress<double>? progress, CancellationToken cancellation) =>
         TranslationArea.Generate(messagesDirectory, new TextExtractor(iso).ExtractAll(progress, cancellation));
 
+    public IReadOnlyList<GameImageSource> DiscoverImages(IsoIndex iso) =>
+        GameImageCatalog.Discover(iso, TextSourceCatalog.LoadInnocentSin().CpkPath);
+
     public IProjectCompiler CreateCompiler(TranslationProject project) =>
-        new TranslationBuilder(project.IsoPath, project.MessagesDirectory, LoadFont(project));
+        new TranslationBuilder(project.IsoPath, project.MessagesDirectory,
+            GameBuildSpec.InnocentSin(LoadFont(project)),
+            project.ImageTranslationControlPath, project.Root);
 
     public (string Group, string Label) DescribeTbf(string originalDirectory, string originalFilename) =>
         TbfLocation.Describe(originalDirectory, originalFilename);
 
-    public IReadOnlyCollection<string> CommandNames { get; } = EventCommands.KnownNames.ToHashSet();
+    public IReadOnlyCollection<string> CommandNames { get; } = EventCommands.InnocentSin.KnownNames.ToHashSet();
 
     public IFontTools? Fonts { get; } = new FontTools();
 
@@ -80,7 +86,7 @@ public static class TbfLocation
     {
         ["event.bin"] = "Eventos",
         ["DNGSCN.BNP"] = "Dungeons",
-        ["F_BE.BNP"] = "F_BE",
+        ["F_BE.BNP"] = "F_BE (depuração)",
         ["P_DEMO.BNP"] = "Personas (demo)",
         ["CD_SHOP.BIN"] = "Loja de CDs",
         ["TM_EVE.BNP"] = "Contatos",

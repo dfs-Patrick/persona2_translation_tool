@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -10,6 +10,7 @@
     <!-- Game knowledge shipped inside the tool (see data/ and scripts/gen_text_sources.py). -->
     <EmbeddedResource Include="..\..\data\**\*.json" LogicalName="data/%(RecursiveDir)%(Filename)%(Extension)" />
     <EmbeddedResource Include="..\..\data\**\*.png" LogicalName="data/%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="..\..\data\**\*.jpg" LogicalName="data/%(RecursiveDir)%(Filename)%(Extension)" />
     <!-- B3 · pt_BR spell checking dictionary (LibreOffice VERO, LGPLv3/MPL; see data/dictionaries/pt-br/README_pt_BR.txt). -->
     <EmbeddedResource Include="..\..\data\**\*.dic;..\..\data\**\*.aff" LogicalName="data/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>

@@ -51,30 +51,59 @@
 
     <TextBlock DockPanel.Dock="Top" Classes="error" Margin="12,8" Text="{Binding IsoWarning}"
                IsVisible="{Binding IsoWarning, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    <TextBlock DockPanel.Dock="Top" Classes="error" Margin="12,4" Text="{Binding IndexError}"
+               IsVisible="{Binding IndexError, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
     <Grid ColumnDefinitions="340,4,*">
       <!-- Browser -->
       <TabControl Grid.Column="0" Padding="0" Background="{DynamicResource PanelBackground}">
         <TabItem Header="Tradução">
-          <DockPanel Margin="8">
-            <TextBox DockPanel.Dock="Top" Margin="0,0,0,8" PlaceholderText="Filtrar arquivos…" Text="{Binding FileFilter}" />
-            <TextBlock DockPanel.Dock="Top" Classes="subtle" TextWrapping="Wrap" IsVisible="{Binding HasNoFiles}"
-                       Text="Nenhum arquivo de tradução ainda. Clique em “Gerar da ISO” para criar os arquivos a partir do jogo, ou em “Importar TBF…” para trazer traduções da v2." />
-            <TreeView ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedNode}">
-              <TreeView.DataTemplates>
-                <TreeDataTemplate DataType="vm:TbfGroupViewModel" ItemsSource="{Binding Files}">
-                  <TextBlock FontWeight="SemiBold" Text="{Binding Summary}" />
-                </TreeDataTemplate>
-                <DataTemplate DataType="vm:TbfFileItemViewModel">
-                  <Grid ColumnDefinitions="*,Auto" Margin="0,0,16,0">
-                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Grid.Column="1" Margin="8,0,0,0" FontSize="12" Text="{Binding ProgressText}"
-                               Classes="subtle" Classes.done="{Binding IsDone}" />
-                  </Grid>
-                </DataTemplate>
-              </TreeView.DataTemplates>
-            </TreeView>
-          </DockPanel>
+          <TabControl>
+            <TabItem Header="Texto">
+              <DockPanel Margin="8">
+                <TextBox DockPanel.Dock="Top" Margin="0,0,0,8" PlaceholderText="Filtrar arquivos…" Text="{Binding FileFilter}" />
+                <TextBlock DockPanel.Dock="Top" Classes="subtle" TextWrapping="Wrap" IsVisible="{Binding HasNoFiles}"
+                           Text="Nenhum arquivo de tradução ainda. Clique em “Gerar da ISO” para criar os arquivos a partir do jogo, ou em “Importar TBF…” para trazer traduções da v2." />
+                <TreeView ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedNode}">
+                  <TreeView.DataTemplates>
+                    <TreeDataTemplate DataType="vm:DirectoryGroupViewModel" ItemsSource="{Binding Items}">
+                      <StackPanel Spacing="1" ToolTip.Tip="{Binding Description}">
+                        <TextBlock FontWeight="SemiBold" Text="{Binding Summary}" />
+                        <TextBlock Classes="subtle" FontSize="10" Text="{Binding DirectoryKey}" />
+                      </StackPanel>
+                    </TreeDataTemplate>
+                    <DataTemplate DataType="vm:TbfFileItemViewModel">
+                      <Grid ColumnDefinitions="*,Auto" Margin="0,0,16,0">
+                        <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ToolTip}" />
+                        <TextBlock Grid.Column="1" Margin="8,0,0,0" FontSize="12" Text="{Binding ProgressText}"
+                                   Classes="subtle" Classes.done="{Binding IsDone}" />
+                      </Grid>
+                    </DataTemplate>
+                  </TreeView.DataTemplates>
+                </TreeView>
+              </DockPanel>
+            </TabItem>
+            <TabItem Header="Imagens">
+              <DockPanel Margin="8">
+                <TextBlock DockPanel.Dock="Top" Classes="subtle" FontSize="12" Margin="0,0,0,8"
+                           TextWrapping="Wrap" Text="{Binding ImageStatus}" />
+                <TreeView ItemsSource="{Binding ImageGroups}" SelectedItem="{Binding SelectedImageNode}">
+                  <TreeView.DataTemplates>
+                    <TreeDataTemplate DataType="vm:DirectoryGroupViewModel" ItemsSource="{Binding Items}">
+                      <StackPanel Spacing="1" ToolTip.Tip="{Binding Description}">
+                        <TextBlock FontWeight="SemiBold" Text="{Binding Summary}" />
+                        <TextBlock Classes="subtle" FontSize="10" Text="{Binding DirectoryKey}" />
+                      </StackPanel>
+                    </TreeDataTemplate>
+                    <DataTemplate DataType="vm:GameImageItemViewModel">
+                      <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"
+                                 ToolTip.Tip="{Binding ToolTip}" />
+                    </DataTemplate>
+                  </TreeView.DataTemplates>
+                </TreeView>
+              </DockPanel>
+            </TabItem>
+          </TabControl>
         </TabItem>
         <TabItem Header="Busca">
           <DockPanel Margin="8">
@@ -121,13 +150,99 @@
       <Panel Grid.Column="2">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6"
                     IsVisible="{Binding Panel, Converter={x:Static ObjectConverters.IsNull}}">
-          <TextBlock HorizontalAlignment="Center" Classes="subtle" Text="Escolha um arquivo na aba Tradução para editar." />
+          <TextBlock HorizontalAlignment="Center" Classes="subtle" Text="Escolha um texto ou uma imagem na aba Tradução." />
           <TextBlock HorizontalAlignment="Center" Classes="error" Text="{Binding EditorError}" />
         </StackPanel>
         <ContentControl Content="{Binding Panel}">
           <ContentControl.DataTemplates>
             <DataTemplate DataType="vm:TbfEditorViewModel">
               <v:TbfEditorView />
+            </DataTemplate>
+            <DataTemplate DataType="vm:DirectoryGroupViewModel">
+              <StackPanel Margin="24" Spacing="10" MaxWidth="720" HorizontalAlignment="Left">
+                <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding DisplayLabel}" />
+                <TextBlock Classes="subtle" Text="{Binding DirectoryKey}" />
+                <TextBlock Text="Rótulo de exibição" />
+                <TextBox Text="{Binding Label, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="{Binding DefaultLabel}" />
+                <TextBlock Text="Descrição do diretório" />
+                <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True" MinHeight="90"
+                         PlaceholderText="Descreva o conteúdo ou o contexto deste diretório…" />
+                <TextBlock Classes="subtle" Text="As alterações são salvas automaticamente em translation/directory-active-index.json." />
+              </StackPanel>
+            </DataTemplate>
+            <DataTemplate DataType="vm:ImageViewerViewModel">
+              <DockPanel Margin="12">
+                <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,10">
+                  <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding Name}" />
+                  <TextBlock Classes="subtle" FontSize="12" Text="{Binding Path}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Classes="subtle" Text="{Binding DirectoryDescription}" TextWrapping="Wrap" />
+                  <TextBlock Text="Descrição desta imagem / trabalho realizado" />
+                  <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True"
+                           MinHeight="52" PlaceholderText="Explique o uso da imagem e o que foi alterado…" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Escolher substituição…" Command="{Binding $parent[UserControl].((vm:ProjectViewModel)DataContext).ChooseImageReplacementCommand}"
+                            CommandParameter="{Binding}" />
+                    <Button Content="Abrir no LibreSprite…" Command="{Binding $parent[UserControl].((vm:ProjectViewModel)DataContext).OpenInLibreSpriteCommand}"
+                            CommandParameter="{Binding}" />
+                    <Button Content="Abrir no GIMP…" Command="{Binding $parent[UserControl].((vm:ProjectViewModel)DataContext).OpenInGimpCommand}"
+                            CommandParameter="{Binding}" />
+                    <Button Content="Atualizar prévia" Command="{Binding $parent[UserControl].((vm:ProjectViewModel)DataContext).RefreshImagePreviewCommand}"
+                            CommandParameter="{Binding}" IsEnabled="{Binding HasReplacement}" />
+                    <Button Content="Remover substituição" Command="{Binding $parent[UserControl].((vm:ProjectViewModel)DataContext).RemoveImageReplacementCommand}"
+                            CommandParameter="{Binding}" IsEnabled="{Binding HasReplacement}" />
+                    <TextBlock Classes="subtle" VerticalAlignment="Center"
+                               Text="translation/image-translation-control.json" />
+                  </StackPanel>
+                  <TextBlock Classes="subtle" Text="{Binding EditorStatus}" TextWrapping="Wrap" />
+                  <TextBlock Classes="error" Text="{Binding ReplacementError}"
+                             IsVisible="{Binding ReplacementError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                </StackPanel>
+                <Grid ColumnDefinitions="*,12,*">
+                  <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="8">
+                      <TextBlock FontWeight="SemiBold" Text="{Binding Original.Name}" />
+                      <Border BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                              Background="{DynamicResource PanelBackground}" Padding="8" MinHeight="220">
+                        <Image Source="{Binding Original.Preview}" Stretch="Uniform" />
+                      </Border>
+                      <TextBlock FontWeight="SemiBold" Text="Informações da original" />
+                      <TextBlock Classes="subtle" Text="{Binding Original.Resolution, StringFormat='Resolução: {0}'}" />
+                      <TextBlock Classes="subtle" Text="{Binding Original.PixelFormat, StringFormat='Formato: {0}'}" />
+                      <TextBlock Classes="subtle" Text="{Binding Original.ColorProfile, StringFormat='Perfil de cor: {0}'}" />
+                      <TextBlock Classes="subtle" Text="{Binding Original.Palette, StringFormat='Paleta: {0}'}" />
+                      <TextBlock Classes="subtle" Text="{Binding Original.Compression, StringFormat='Compressão: {0}'}" />
+                      <TextBlock Classes="subtle" Text="{Binding Original.Grid, StringFormat='Grade: {0}'}" />
+                    </StackPanel>
+                  </ScrollViewer>
+                  <ScrollViewer Grid.Column="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="8">
+                      <TextBlock FontWeight="SemiBold" Text="Versão do projeto" />
+                      <Border BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                              Background="{DynamicResource PanelBackground}" Padding="8" MinHeight="220">
+                        <Grid>
+                          <Image Source="{Binding Replacement.Preview}" Stretch="Uniform"
+                                 IsVisible="{Binding HasReplacement}" />
+                          <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Classes="subtle"
+                                     Text="Nenhuma substituição selecionada"
+                                     IsVisible="{Binding HasReplacement, Converter={x:Static BoolConverters.Not}}" />
+                        </Grid>
+                      </Border>
+                      <StackPanel Spacing="4" IsVisible="{Binding HasReplacement}">
+                        <TextBlock FontWeight="SemiBold" Text="{Binding Replacement.Name}" />
+                        <TextBlock FontWeight="SemiBold" Text="Informações da substituição" />
+                        <TextBlock Classes="subtle" Text="{Binding Replacement.Resolution, StringFormat='Resolução: {0}'}" />
+                        <TextBlock Classes="subtle" Text="{Binding Replacement.PixelFormat, StringFormat='Formato: {0}'}" />
+                        <TextBlock Classes="subtle" Text="{Binding Replacement.ColorProfile, StringFormat='Perfil de cor: {0}'}" />
+                        <TextBlock Classes="subtle" Text="{Binding Replacement.Palette, StringFormat='Paleta: {0}'}" />
+                        <TextBlock Classes="subtle" Text="{Binding Replacement.Compression, StringFormat='Compressão: {0}'}" />
+                        <TextBlock Classes="subtle" Text="{Binding Replacement.Grid, StringFormat='Grade: {0}'}" />
+                      </StackPanel>
+                    </StackPanel>
+                  </ScrollViewer>
+                </Grid>
+              </DockPanel>
             </DataTemplate>
             <DataTemplate DataType="vm:GlossaryViewModel">
               <DockPanel>

@@ -51,7 +51,7 @@ public partial class StartViewModel : ObservableObject
     [RelayCommand]
     private async Task BrowseIso()
     {
-        var path = await _dialogs.PickFileAsync("Escolha a ISO original", "Imagem ISO", "*.iso");
+        var path = await _dialogs.PickFileAsync("Escolha a ISO original", "Imagem de disco", "*.iso", "*.cue");
         if (path is null) return;
         IsoPath = path;
         if (ProjectFolder.Length == 0)

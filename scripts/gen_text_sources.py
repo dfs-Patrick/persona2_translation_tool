@@ -1,18 +1,20 @@
-"""Generates data/is/text_sources.json from the v2 game description.
+"""Generates data/<game>/text_sources.json from the v2 game description.
 
-The v2 file (old_versions/v2/game/is/iso.json) describes all ~26,500 files
-of the ISO. The translation only needs the files that hold text, so this
-keeps just the path to each one: CPK entry -> containers -> script.
+The v2 file (old_versions/v2/game/<game>/iso.json) describes every file of
+the ISO. The translation only needs the files that hold text, so this keeps
+just the path to each one: CPK entry -> containers -> script.
 
-Usage: python scripts/gen_text_sources.py
+Usage: python scripts/gen_text_sources.py [is|ep]   (default: is)
 """
 
 import json
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "old_versions" / "v2" / "game" / "is" / "iso.json"
-TARGET = ROOT / "data" / "is" / "text_sources.json"
+GAME = sys.argv[1] if len(sys.argv) > 1 else "is"
+SOURCE = ROOT / "old_versions" / "v2" / "game" / GAME / "iso.json"
+TARGET = ROOT / "data" / GAME / "text_sources.json"
 CPK_PATH = "PSP_GAME/USRDIR/pack/P2PT_ALL.cpk"
 TEXT_TYPES = {"efb", "pdemo"}
 CONTAINERS = {"ear", "par", "bnp"}

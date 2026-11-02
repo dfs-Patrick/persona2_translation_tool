@@ -22,6 +22,10 @@ Ao clicar em **Criar projeto**, a ferramenta:
 2. calcula o SHA-256 da ISO;
 3. lê o texto do jogo direto da ISO e cria um arquivo `.tbf` por script.
 
+Jogos de PlayStation 1 usam o `.cue` (ou o `.bin` direto) no campo **ISO original**; a ferramenta lê os 2048 bytes úteis de cada setor bruto (MODE2/2352) e identifica o jogo pelo `SYSTEM.CNF` (ex.: `SLPS-03170`). O motor de Shin Megami Tensei (JP) já extrai os textos dos scripts de mapa (`DATA.BIN`, arquivos `smt/map_NNNN.tbf`; 1.847 mensagens). Códigos de controle aparecem como `[cXXX]` e glifos sem caractere conhecido como `{gXXX}`; a conversão é reversível. A compilação regrava os scripts traduzidos no próprio `DATA.BIN`: a tabela de mensagens é reajustada e os setores tocados têm EDC/ECC recalculados; sai um `.bin` com `.cue`. Se o texto traduzido de um script passar do espaço dele, o script cresce em setores: os arquivos seguintes avançam, a tabela do `DATA.BIN` no executável é reescrita e o espaço vem dos setores zerados no fim dos arquivos vizinhos, então o disco mantém o tamanho (a validação avisa se esse espaço acabar). O jogo empilha várias mensagens na mesma caixa (ex.: as três falas antes da entrada do nome ocupam uma linha cada); se a tradução usa mais linhas que o original, a caixa estoura, o jogo pede ▼ e o que vem depois pode travar (a entrada do nome não abre). A validação avisa toda página com mais linhas que o original. Cada `{g0}` (quebra de página/espera) do original precisa existir na tradução, na mesma quantidade, porque a tabela de mensagens do jogo aponta para a posição logo depois dele. Só aceita caracteres que existem na fonte: além da japonesa, o disco recebe glifos latinos (A–Z, a–z, 0–9, acentos do português e pontuação comum, em `data/smt/latin.json`) desenhados nos tokens em branco da fonte, então o PT-BR já pode ser escrito. O executável recebe um patch de largura variável (`SmtTextPatch`): nas caixas de mensagem cada letra fica logo após a anterior, e nos menus as duas rotinas de texto (fonte de 12 px e de 10 px) somam as larguras da linha. A fonte de 10 px dos menus não tinha minúsculas nem acentos; os glifos latinos vão para a segunda camada vazia da textura dela. Cada linha da caixa de mensagem continua com no máximo 28 caracteres (são 28 células por linha). O teclado de nome vira latino: maiúsculas, minúsculas e números/símbolos nas três páginas, com os rótulos ABC/abc/123/＜/＞/Fim. Bancos de texto que vão até o fim da entrada podem crescer em setores, como os scripts (o carregador lê o tamanho da tabela). As imagens (TIM, cruas, RLE ou em contêineres do `DATA.BIN`) aparecem na subaba Imagens com o mesmo painel de metadados do PSP. Também são traduzidos os bancos de textos de menus, itens, nomes e falas de demônios (`smt/bank_NNNN_XXXX.tbf`, chave `str_NNNNN`), regravados no lugar como os scripts. Para substituir uma imagem, indique um PNG de mesmo tamanho no `image-translation-control.json`: ao compilar, ele é convertido para o TIM original (mesmo modo e paleta; imagens indexadas usam a cor mais próxima da paleta original), recompactado e gravado no lugar; se a versão compactada passar o espaço, a compilação aponta a imagem.
+
+Na aba de imagens, o botão **Abrir no GIMP…** (ao lado do LibreSprite) exporta o PNG de trabalho e abre o GIMP; o executável é procurado em `Program Files\GIMP*` e, se não achar, a ferramenta pede o caminho (guardado nas configurações do usuário). Depois de salvar no GIMP (Arquivo ▸ Sobrescrever), use **Atualizar prévia**.
+
 ## Abrir
 
 - Clique num projeto da lista **Abrir projeto**, ou em **Abrir projeto…** e escolha o
@@ -43,6 +47,9 @@ meu-projeto/
 │   │   ├── event.bin/e0000.tbf
 │   │   ├── DNGSCN.BNP/0_0000.tbf
 │   │   └── …
+│   ├── directory-active-index.json rótulos e descrições dos diretórios
+│   ├── image-translation-control.json notas e caminhos das substituições de imagem
+│   ├── images/                 imagens de substituição escolhidas no visualizador
 │   ├── glossary.json          glossário (veja Glossário)
 │   └── dictionary.txt         palavras aceitas pela ortografia (veja Correção ortográfica)
 ├── fonts/                     criada por "Exportar fontes…" (opcional)
@@ -52,6 +59,23 @@ meu-projeto/
 
 `translation/` é tudo o que a equipe produz: os TBF, o glossário e o dicionário. As outras
 pastas podem ser recriadas pela ferramenta.
+
+### Índices de diretórios e imagens
+
+Na aba **Tradução**, a subaba **Texto** e a subaba **Imagens** organizam os arquivos por
+diretório. Selecione um diretório para editar seu rótulo de exibição e descrição; o rótulo
+personalizado aparece no lugar do nome amigável padrão, com o caminho original em texto
+menor. A descrição também aparece ao passar o mouse sobre o diretório e seus itens.
+Esses dados são salvos em `directory-active-index.json`.
+
+Na subaba **Imagens**, selecione uma imagem para comparar o original com a substituição.
+**Escolher substituição…** aceita PNG e GIM e copia o arquivo para `translation/images/`;
+o painel lê as informações da substituição a partir desse arquivo, separadamente das
+informações da imagem original. A descrição da imagem e o caminho relativo da substituição
+ficam em `image-translation-control.json`. Na compilação, PNGs e GIMs são convertidos para
+o GIM original, que mantém formato, paleta e dimensões; por isso, a imagem substituta deve
+ter a mesma resolução. Cores fora da paleta indexada são aproximadas para a cor disponível
+mais próxima. Os arquivos PAR/BNP e o CPK que contêm a imagem são remontados na ISO gerada.
 
 ## `translation-project.json`
 

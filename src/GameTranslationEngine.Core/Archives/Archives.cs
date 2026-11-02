@@ -44,15 +44,17 @@ public static partial class Par
     public static List<ArchiveEntry> Split(ReadOnlyMemory<byte> data)
     {
         var span = data.Span;
+        if (span.Length < 8) throw new InvalidDataException("PAR inválido: arquivo pequeno demais.");
         var count = (int)BinaryPrimitives.ReadUInt32LittleEndian(span);
-        if (count <= 0 || 4 * (count + 1) > data.Length) throw new InvalidDataException("PAR inválido: contagem de arquivos.");
+        if (count <= 0 || count > span.Length / 4 - 1)
+            throw new InvalidDataException("PAR inválido: contagem de arquivos.");
         var pointer = Align16(4 * (count + 1));
         var entries = new List<ArchiveEntry>(count);
         for (var i = 0; i < count; i++)
         {
             var size = (int)BinaryPrimitives.ReadUInt32LittleEndian(span[(4 + 4 * i)..]);
-            if (size == 0) throw new InvalidDataException("PAR com arquivo de tamanho zero.");
-            if (pointer + size > data.Length) throw new InvalidDataException("PAR inválido: arquivo além do fim.");
+            if (size <= 0 || size > data.Length - pointer)
+                throw new InvalidDataException("PAR inválido: tamanho de arquivo.");
             entries.Add(new ArchiveEntry(pointer, data.Slice(pointer, size)));
             pointer += Align16(size);
         }

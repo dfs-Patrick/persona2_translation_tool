@@ -39,7 +39,7 @@ public sealed class Message(IReadOnlyList<MessagePart> parts)
                 if (size == 0) throw new InvalidDataException($"Comando inválido 0x{value:x} em {context.Location(position - 2)}.");
                 var arguments = new int[size - 1];
                 for (var i = 0; i < arguments.Length; i++) arguments[i] = Next(data, ref position, context);
-                parts.Add(EventCommands.Decode(value & 0xFF, arguments, context));
+                parts.Add(context.Commands.Decode(value & 0xFF, arguments, context));
             }
             else if (context.Encoding.TryDecode(value, out var character))
             {
@@ -47,7 +47,9 @@ public sealed class Message(IReadOnlyList<MessagePart> parts)
             }
             else
             {
-                throw new InvalidDataException($"Caractere desconhecido 0x{value:x} em {context.Location(position - 2)}.");
+                // A glyph with no known character (e.g. an unidentified kanji of the
+                // Japanese font): kept as \xHHHH, which encodes back to the same word.
+                parts.Add(new RawPart(value));
             }
         }
         length = position;
@@ -85,7 +87,7 @@ public sealed class Message(IReadOnlyList<MessagePart> parts)
                     }
                     break;
                 case CommandPart command:
-                    output.AddRange(EventCommands.Encode(command, context));
+                    output.AddRange(context.Commands.Encode(command, context));
                     break;
             }
         }
@@ -221,13 +223,16 @@ public sealed class Message(IReadOnlyList<MessagePart> parts)
 }
 
 /// <summary>What message encoding/decoding needs: the character table, constants and where we are.</summary>
-public sealed class MessageContext(EventEncoding encoding, ConstantTables constants, string file = "", int baseOffset = 0)
+public sealed class MessageContext(EventEncoding encoding, ConstantTables constants, string file = "", int baseOffset = 0,
+    EventCommands? commands = null)
 {
     public EventEncoding Encoding { get; } = encoding;
     public ConstantTables Constants { get; } = constants;
+    /// <summary>The game's message commands (Innocent Sin when not given).</summary>
+    public EventCommands Commands { get; } = commands ?? EventCommands.InnocentSin;
     public string File { get; } = file;
     public int BaseOffset { get; } = baseOffset;
 
-    public MessageContext At(string file, int baseOffset) => new(Encoding, Constants, file, baseOffset);
+    public MessageContext At(string file, int baseOffset) => new(Encoding, Constants, file, baseOffset, Commands);
     public string Location(int position) => $"{File} em 0x{BaseOffset + position:x}";
 }

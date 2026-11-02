@@ -54,7 +54,7 @@ public partial class MainWindowViewModel : ObservableObject
     private void Open(TranslationProject project)
     {
         _settings.AddRecent(project.ProjectFilePath);
-        CurrentPage = new ProjectViewModel(project, _dialogs, Close);
+        CurrentPage = new ProjectViewModel(project, _dialogs, Close, _settings);
         Background = EngineArt.Background(project.Engine);
         Title = $"{project.Name} — Game Translation Engine";
     }

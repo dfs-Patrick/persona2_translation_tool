@@ -17,12 +17,15 @@ public sealed record IsoIdentity(
 public static class SupportedGames
 {
     public const string InnocentSinUs = "ULUS-10584";
+    public const string ShinMegamiTenseiJp = "SLPS-03170";
 
     public static string Describe(string gameId) => gameId switch
     {
+        ShinMegamiTenseiJp => "Shin Megami Tensei (PS1, JP)",
         InnocentSinUs => "Persona 2: Innocent Sin (PSP, US)",
         "ULES-01557" => "Persona 2: Innocent Sin (PSP, EU) — não suportada",
         "ULJM-05884" => "Persona 2: Tsumi (PSP, JP) — não suportada",
+        "ULJM-06081" => "Persona 2: Batsu / Eternal Punishment (PSP, JP)",
         _ => $"{gameId} — jogo não reconhecido",
     };
 }
@@ -35,6 +38,9 @@ public static class IsoVerifier
 {
     public static IsoIdentity Identify(IsoIndex iso, string? sha256 = null)
     {
+        if (ReadPlayStationGameId(iso) is { } ps1Id)
+            return new IsoIdentity(ps1Id, SupportedGames.Describe(ps1Id), iso.VolumeId, iso.Source.Length, sha256);
+
         var gameId = ReadUmdGameId(iso);
         var sfo = iso.Find("PSP_GAME/PARAM.SFO") is { } sfoEntry
             ? ParamSfo.Read(iso.Open(sfoEntry).ReadAll())
@@ -73,6 +79,18 @@ public static class IsoVerifier
             ArrayPool<byte>.Shared.Return(buffer);
         }
         return Convert.ToHexStringLower(hash.GetHashAndReset());
+    }
+
+    /// <summary>PlayStation 1 discs: "BOOT = cdrom:\SLPS_031.70;1" in SYSTEM.CNF becomes "SLPS-03170".</summary>
+    private static string? ReadPlayStationGameId(IsoIndex iso)
+    {
+        if (iso.Find("SYSTEM.CNF") is not { } entry) return null;
+        var text = Encoding.ASCII.GetString(iso.Open(entry).ReadBytes(0, (int)Math.Min(entry.Size, 512u)));
+        var match = System.Text.RegularExpressions.Regex.Match(text,
+            @"BOOT\s*=\s*cdrom:\\?(?<code>[A-Z]{4})[_-](?<a>\d{3})\.?(?<b>\d{2})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        return match.Success
+            ? $"{match.Groups["code"].Value.ToUpperInvariant()}-{match.Groups["a"].Value}{match.Groups["b"].Value}"
+            : null;
     }
 
     private static string? ReadUmdGameId(IsoIndex iso)

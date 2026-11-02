@@ -7,12 +7,18 @@ using GameTranslationEngine.Core.GameData;
 namespace GameTranslationEngine.Core.Eboot;
 
 /// <summary>A table in the EBOOT with the position of each file of a container.</summary>
-/// <param name="Format">"ear": (start, end) pairs; "bnp_sector": (offset in sector, sector, size).</param>
+/// <param name="Format">
+/// "ear": (start, end) pairs; "bnp_sector": (offset in sector, sector, size);
+/// "off32" (EP P_DEMO, from v1): one word per group, offset | files &lt;&lt; 25, then the end aligned to 2048.
+/// </param>
 public sealed record EbootTable(string File, string Format, uint Address, int SizeAdjust)
 {
-    public static IReadOnlyList<EbootTable> LoadInnocentSin()
+    public static IReadOnlyList<EbootTable> LoadInnocentSin() => Load("is");
+
+    /// <summary>Tables of data/<paramref name="game"/>/eboot_tables.json.</summary>
+    public static IReadOnlyList<EbootTable> Load(string game)
     {
-        using var document = GameResources.ReadJson("is/eboot_tables.json");
+        using var document = GameResources.ReadJson($"{game}/eboot_tables.json");
         return document.RootElement.GetProperty("tables").EnumerateArray().Select(t => new EbootTable(
             t.GetProperty("file").GetString()!,
             t.GetProperty("format").GetString()!,
@@ -36,6 +42,7 @@ public sealed class EbootPatcher(ElfImage elf)
     /// <summary>True when the table at <paramref name="table"/> describes <paramref name="layout"/>.</summary>
     public bool Matches(EbootTable table, IReadOnlyList<EntryLayout> layout)
     {
+        if (table.Format == "off32") return WalkOff32(table, layout, null);
         if (!Elf.TryToOffset(table.Address, out var start) || start + layout.Count * table.EntrySize > Elf.Data.Length) return false;
         Span<byte> expected = stackalloc byte[8];
         for (var i = 0; i < layout.Count; i++)
@@ -54,6 +61,11 @@ public sealed class EbootPatcher(ElfImage elf)
         if (!Matches(table, original))
             throw new InvalidDataException(
                 $"A tabela de {table.File} em 0x{table.Address:X8} não corresponde ao arquivo original; o EBOOT não é o esperado.");
+        if (table.Format == "off32")
+        {
+            WalkOff32(table, original, updated);
+            return;
+        }
         var start = Elf.ToOffset(table.Address);
         for (var i = 0; i < updated.Count; i++)
             Encode(table, updated[i], Elf.Data.AsSpan(start + i * table.EntrySize, table.EntrySize));
@@ -77,6 +89,52 @@ public sealed class EbootPatcher(ElfImage elf)
                 break;
             default:
                 throw new InvalidDataException($"Formato de tabela desconhecido: {table.Format}.");
+        }
+    }
+
+    /// <summary>
+    /// "off32": each word starts a group of files (offset | count &lt;&lt; 25); after the
+    /// groups comes the container's end, aligned to 2048. With <paramref name="write"/>
+    /// the offsets and the end are rewritten from it, keeping the groups.
+    /// </summary>
+    private bool WalkOff32(EbootTable table, IReadOnlyList<EntryLayout> layout, IReadOnlyList<EntryLayout>? write)
+    {
+        if (!Elf.TryToOffset(table.Address, out var at) || layout.Count == 0) return false;
+        var index = 0;
+        while (index < layout.Count)
+        {
+            if (at + 4 > Elf.Data.Length) return false;
+            var word = BinaryPrimitives.ReadUInt32LittleEndian(Elf.Data.AsSpan(at));
+            var count = (int)(word >> 25);
+            if (count == 0 || (word & 0x1FFFFFF) != layout[index].Offset || index + count > layout.Count) return false;
+            if (write is not null)
+                BinaryPrimitives.WriteUInt32LittleEndian(Elf.Data.AsSpan(at), (uint)write[index].Offset | (uint)count << 25);
+            index += count;
+            at += 4;
+        }
+        static uint End(IReadOnlyList<EntryLayout> l) => (uint)((l[^1].Offset + l[^1].Size + 2047) & ~2047);
+        if (BinaryPrimitives.ReadUInt32LittleEndian(Elf.Data.AsSpan(at)) != End(layout)) return false;
+        if (write is not null) BinaryPrimitives.WriteUInt32LittleEndian(Elf.Data.AsSpan(at), End(write));
+        return true;
+    }
+
+    /// <summary>
+    /// A size the code loads as an immediate ("ori/addiu reg, zero, size", e.g. CD_SHOP.BIN
+    /// in EP): checks each instruction holds <paramref name="oldValue"/> and writes the new one.
+    /// </summary>
+    public void UpdateImmediate(IEnumerable<uint> addresses, int oldValue, int newValue, string what)
+    {
+        foreach (var address in addresses)
+        {
+            var word = Elf.ReadU32(address);
+            var opcode = word >> 26;
+            // addiu extends the sign: above 0x7FFF the value would turn negative.
+            var limit = opcode == 0x09 ? 0x7FFF : 0xFFFF;
+            if (newValue < 0 || newValue > limit)
+                throw new InvalidDataException($"{what}: {newValue} bytes não cabem na instrução do EBOOT (máximo {limit}).");
+            if (opcode is not (0x0D or 0x09) || (word & 0xFFFF) != oldValue)
+                throw new InvalidDataException($"{what}: a instrução em 0x{address:X8} não carrega o tamanho original ({oldValue}).");
+            Elf.WriteU32(address, (word & 0xFFFF0000) | (uint)newValue);
         }
     }
 

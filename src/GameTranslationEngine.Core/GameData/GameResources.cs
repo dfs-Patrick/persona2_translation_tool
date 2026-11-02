@@ -44,14 +44,30 @@ public sealed class ConstantTables
         return tables;
     }
 
-    private void Add(string kind, IReadOnlyList<string> names)
+    /// <summary>Eternal Punishment: event bits and item names, as { "0x0001": "name" } tables from v2.</summary>
+    public static ConstantTables LoadEternalPunishment()
+    {
+        var tables = new ConstantTables();
+        foreach (var kind in new[] { "bit", "item" })
+        {
+            using var json = GameResources.ReadJson($"ep/context/{kind}.json");
+            tables.Add(kind, json.RootElement.EnumerateObject().ToDictionary(
+                p => Convert.ToInt32(p.Name, 16), p => p.Value.GetString()!));
+        }
+        return tables;
+    }
+
+    private void Add(string kind, IReadOnlyList<string> names) =>
+        Add(kind, names.Select((name, value) => (value, name)).ToDictionary(p => p.value, p => p.name));
+
+    private void Add(string kind, IReadOnlyDictionary<int, string> names)
     {
         var from = new Dictionary<int, string>();
         var to = new Dictionary<string, int>();
-        for (var i = 0; i < names.Count; i++)
+        foreach (var (value, name) in names)
         {
-            if (!to.TryAdd(names[i], i)) throw new InvalidDataException($"Constante duplicada em {kind}: {names[i]}");
-            from[i] = names[i];
+            if (!to.TryAdd(name, value)) throw new InvalidDataException($"Constante duplicada em {kind}: {name}");
+            from[value] = name;
         }
         _fromBin[kind] = from;
         _toBin[kind] = to;

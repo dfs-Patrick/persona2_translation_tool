@@ -39,7 +39,12 @@ public sealed class ProjectFile
 }
 
 /// <summary>A translation file of the project, with the data the browser shows.</summary>
-public sealed record TbfFileInfo(string FullPath, string RelativePath, string Group, string Label);
+public sealed record TbfFileInfo(
+    string FullPath,
+    string RelativePath,
+    string Group,
+    string Label,
+    string DirectoryKey = "");
 
 /// <summary>
 /// A translation project: a folder holding translation-project.json, the TBF
@@ -100,13 +105,13 @@ public sealed class TranslationProject
 
         progress?.Report(("Verificando a ISO", 0));
         IsoIdentity identity;
-        using (var source = new FileByteSource(isoPath))
-            identity = IsoVerifier.Identify(IsoIndex.Read(source));
+        using (var index = IsoIndex.Read(DiscImage.Open(isoPath)))
+            identity = IsoVerifier.Identify(index);
         if (!engine.Supports(identity))
             throw new InvalidDataException(
                 $"ISO não suportada pelo motor {engine.Name}: {engine.DescribeGame(identity.GameId)}. Use a ISO original de {engine.ExpectedIso}.");
 
-        var sha = await IsoVerifier.ComputeSha256Async(isoPath,
+        var sha = await IsoVerifier.ComputeSha256Async(DiscImage.ResolveDataFile(isoPath),
             new Progress<double>(f => progress?.Report(("Calculando o hash da ISO", f))), cancellation);
 
         Directory.CreateDirectory(root);
@@ -120,13 +125,14 @@ public sealed class TranslationProject
                 Path = RelativeIfInside(root, Path.GetFullPath(isoPath)),
                 GameId = identity.GameId,
                 Title = identity.Title,
-                Size = identity.Size,
+                Size = DiscImage.PhysicalSize(isoPath),
                 Sha256 = sha,
             },
         };
         var project = new TranslationProject(root, file);
         Directory.CreateDirectory(project.MessagesDirectory);
         Directory.CreateDirectory(project.CacheDirectory);
+        project.EnsureTranslationIndexes();
         project.Save();
 
         progress?.Report(("Gerando os arquivos de tradução", 0));
@@ -144,6 +150,7 @@ public sealed class TranslationProject
         var full = Path.GetFullPath(file);
         var project = new TranslationProject(Path.GetDirectoryName(full)!, data, Path.GetFileName(full));
         Directory.CreateDirectory(project.MessagesDirectory);
+        project.EnsureTranslationIndexes();
         return project;
     }
 
@@ -161,13 +168,13 @@ public sealed class TranslationProject
     public string? CheckIso()
     {
         if (!System.IO.File.Exists(IsoPath)) return $"ISO não encontrada: {IsoPath}";
-        var size = new FileInfo(IsoPath).Length;
+        var size = DiscImage.PhysicalSize(IsoPath);
         return size == File.Iso.Size
             ? null
             : $"A ISO em {IsoPath} tem {size} bytes, mas o projeto foi criado com uma de {File.Iso.Size} bytes.";
     }
 
-    public IsoIndex OpenIso() => IsoIndex.Read(new FileByteSource(IsoPath));
+    public IsoIndex OpenIso() => IsoIndex.Read(DiscImage.Open(IsoPath));
 
     /// <summary>
     /// A2–A8 · Reads the text of the game straight from the ISO and writes the
@@ -190,6 +197,20 @@ public sealed class TranslationProject
 
     /// <summary>B3 · Words the spell checker accepts in this project, one per line.</summary>
     public string DictionaryPath => Path.Combine(TranslationDirectory, "dictionary.txt");
+    public string DirectoryActiveIndexPath => Path.Combine(TranslationDirectory, "directory-active-index.json");
+    public string ImageTranslationControlPath => Path.Combine(TranslationDirectory, "image-translation-control.json");
+
+    public DirectoryActiveIndex LoadDirectoryActiveIndex() =>
+        ProjectIndexes.LoadDirectories(DirectoryActiveIndexPath);
+
+    public ImageTranslationControl LoadImageTranslationControl() =>
+        ProjectIndexes.LoadImages(ImageTranslationControlPath);
+
+    private void EnsureTranslationIndexes()
+    {
+        _ = LoadDirectoryActiveIndex();
+        _ = LoadImageTranslationControl();
+    }
 
     public IReadOnlyList<TbfFileInfo> ListTranslationFiles()
     {
@@ -237,20 +258,31 @@ public sealed class TranslationProject
     {
         var relative = Path.GetRelativePath(MessagesDirectory, path).Replace('\\', '/');
         string group = "Outros", label = Path.GetFileNameWithoutExtension(path);
+        string originalDirectory = "";
         try
         {
             using var stream = System.IO.File.OpenRead(path);
             using var json = JsonDocument.Parse(stream);
             var header = json.RootElement.GetProperty("header");
+            originalDirectory = header.GetProperty("originalDirectory").GetString() ?? "";
             (group, label) = Engine.DescribeTbf(
-                header.GetProperty("originalDirectory").GetString() ?? "",
+                originalDirectory,
                 header.GetProperty("originalFilename").GetString() ?? "");
         }
         catch (Exception error) when (error is JsonException or KeyNotFoundException or InvalidOperationException)
         {
             // Invalid files still show up; opening them reports the problem.
         }
-        return new TbfFileInfo(path, relative, group, label);
+        return new TbfFileInfo(path, relative, group, label, DirectoryKey(originalDirectory));
+    }
+
+    private static string DirectoryKey(string? headerDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(headerDirectory)) return "";
+        var parts = headerDirectory.Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries)
+            .Select(part => part.TrimEnd('$')).ToList();
+        var cpk = parts.FindIndex(part => part.EndsWith(".cpk", StringComparison.OrdinalIgnoreCase));
+        return cpk >= 0 && cpk + 1 < parts.Count ? parts[cpk + 1] : parts.FirstOrDefault() ?? "";
     }
 
     private static string RelativeIfInside(string root, string path)

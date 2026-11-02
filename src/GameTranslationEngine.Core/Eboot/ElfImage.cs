@@ -123,6 +123,82 @@ public sealed class ElfImage
 
     public uint ReadU32(uint address) => U32(Data, ToOffset(address));
 
+    public void WriteU32(uint address, uint value) => BinaryPrimitives.WriteUInt32LittleEndian(Data.AsSpan(ToOffset(address)), value);
+
+    /// <summary>Game address where <see cref="AppendToDataSegment"/> will place new data.</summary>
+    public uint AppendAddress
+    {
+        get
+        {
+            var data = LastLoadSegment();
+            return LoadAddress + Align16(data.VirtualAddress + data.MemorySize);
+        }
+    }
+
+    /// <summary>
+    /// New memory for added code and data, at <see cref="AppendAddress"/>: the
+    /// zero-filled .bss of the last loaded segment becomes file data and
+    /// <paramref name="payload"/> follows it (as v1's insertSection did). The
+    /// relocation sections and the section table move down accordingly.
+    /// </summary>
+    public ElfImage AppendToDataSegment(ReadOnlySpan<byte> payload)
+    {
+        var index = Programs.ToList().FindLastIndex(p => p.Type == 1);
+        var segment = Programs[index];
+        var oldEnd = segment.Offset + segment.FileSize;
+        var start = Align16(segment.VirtualAddress + segment.MemorySize) - segment.VirtualAddress;
+        var newFileSize = start + (uint)payload.Length;
+        // Whatever followed the segment keeps a 16-byte alignment.
+        var delta = Align16(segment.Offset + newFileSize) - oldEnd;
+
+        var output = new byte[Data.Length + delta];
+        Data.AsSpan(0, (int)oldEnd).CopyTo(output);
+        payload.CopyTo(output.AsSpan((int)(segment.Offset + start)));
+        Data.AsSpan((int)oldEnd).CopyTo(output.AsSpan((int)(oldEnd + delta)));
+        var span = output.AsSpan();
+
+        uint Shift(uint offset) => offset >= oldEnd ? offset + delta : offset;
+        var phOffset = U32(span, 0x1C);
+        var phSize = U16(span, 0x2A);
+        for (var i = 0; i < Programs.Count; i++)
+        {
+            var at = (int)phOffset + i * phSize;
+            if (i == index)
+            {
+                BinaryPrimitives.WriteUInt32LittleEndian(span[(at + 16)..], newFileSize);
+                BinaryPrimitives.WriteUInt32LittleEndian(span[(at + 20)..], newFileSize);
+            }
+            else
+            {
+                BinaryPrimitives.WriteUInt32LittleEndian(span[(at + 4)..], Shift(Programs[i].Offset));
+            }
+        }
+        var shOffset = Shift(U32(span, 0x20));
+        BinaryPrimitives.WriteUInt32LittleEndian(span[0x20..], shOffset);
+        var shSize = U16(span, 0x2E);
+        for (var i = 0; i < Sections.Count; i++)
+        {
+            var at = (int)shOffset + i * shSize;
+            var section = Sections[i];
+            if (section.Type == 8 && section.Address >= segment.VirtualAddress
+                && section.Address < segment.VirtualAddress + segment.MemorySize)
+            {
+                // .bss now has its bytes (zeros) in the file.
+                BinaryPrimitives.WriteUInt32LittleEndian(span[(at + 4)..], 1);
+                BinaryPrimitives.WriteUInt32LittleEndian(span[(at + 16)..], segment.Offset + section.Address - segment.VirtualAddress);
+            }
+            else if (section.Type != 0 && section.Size > 0 || section.Offset > oldEnd)
+            {
+                BinaryPrimitives.WriteUInt32LittleEndian(span[(at + 16)..], Shift(section.Offset));
+            }
+        }
+        return Parse(output);
+    }
+
+    private ProgramHeader LastLoadSegment() => Programs.Last(p => p.Type == 1);
+
+    private static uint Align16(uint value) => (value + 15) & ~15u;
+
     private static uint U32(ReadOnlySpan<byte> data, int offset) => BinaryPrimitives.ReadUInt32LittleEndian(data[offset..]);
     private static ushort U16(ReadOnlySpan<byte> data, int offset) => BinaryPrimitives.ReadUInt16LittleEndian(data[offset..]);
 
