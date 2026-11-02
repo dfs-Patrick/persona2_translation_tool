@@ -1,0 +1,32 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="GameTranslationEngine.App.App"
+             RequestedThemeVariant="Default">
+  <Application.Resources>
+    <ResourceDictionary>
+      <!-- Translucent surfaces over the faded game art: the art shows, the text stays readable. -->
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="CardBackground" Color="#14161A" Opacity="0.78" />
+          <SolidColorBrush x:Key="BarBackground" Color="#0E0F12" Opacity="0.86" />
+          <SolidColorBrush x:Key="PanelBackground" Color="#0E0F12" Opacity="0.8" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="CardBackground" Color="#FFFFFF" Opacity="0.85" />
+          <SolidColorBrush x:Key="BarBackground" Color="#FAFAFA" Opacity="0.9" />
+          <SolidColorBrush x:Key="PanelBackground" Color="#FAFAFA" Opacity="0.85" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme>
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Dark" Accent="#B3202A" />
+        <ColorPaletteResources x:Key="Light" Accent="#B3202A" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+    <StyleInclude Source="avares://GameTranslationEngine/Styles.axaml" />
+  </Application.Styles>
+</Application>

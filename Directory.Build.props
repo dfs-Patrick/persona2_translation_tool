@@ -1,0 +1,9 @@
+<Project>
+  <!-- Shared by every project of the solution. -->
+  <PropertyGroup>
+    <Version>3.0.0</Version>
+    <Product>Game Translation Engine</Product>
+    <Authors>dfs-Patrick</Authors>
+    <Copyright>dfs-Patrick</Copyright>
+  </PropertyGroup>
+</Project>

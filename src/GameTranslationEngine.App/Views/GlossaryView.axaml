@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GameTranslationEngine.App.ViewModels"
+             x:Class="GameTranslationEngine.App.Views.GlossaryView"
+             x:DataType="vm:GlossaryViewModel">
+  <DockPanel>
+    <Border Classes="bar" DockPanel.Dock="Top" Padding="16,10" BorderThickness="0,0,0,1"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+      <StackPanel Spacing="8">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2">
+            <TextBlock FontSize="16" FontWeight="SemiBold" Text="Glossário" />
+            <TextBlock Classes="subtle" FontSize="11" TextWrapping="Wrap"
+                       Text="Termos de referência da tradução. No editor, o termo em inglês é destacado no original e o termo em português na tradução; passe o mouse para ver a descrição." />
+            <SelectableTextBlock Classes="subtle" FontSize="11" Text="{Binding Summary}" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <TextBlock VerticalAlignment="Center" Text="● alterações não salvas" Foreground="#C27C0E"
+                       IsVisible="{Binding IsDirty}" />
+            <Button Content="Novo termo" Command="{Binding AddCommand}" />
+            <Button Classes="accent" Content="Salvar (Ctrl+S)" Command="{Binding SaveCommand}" />
+          </StackPanel>
+        </Grid>
+        <TextBox PlaceholderText="Buscar no inglês, no português ou na descrição…" Text="{Binding SearchText}" />
+        <TextBlock Classes="error" Text="{Binding LoadError}"
+                   IsVisible="{Binding LoadError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <TextBlock Classes="error" Text="{Binding SaveError}"
+                   IsVisible="{Binding SaveError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      </StackPanel>
+    </Border>
+
+    <Panel>
+      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Classes="subtle" TextAlignment="Center"
+                 Text="Nenhum termo. Use “Novo termo”, ou selecione um texto no editor e clique com o botão direito em “Adicionar ao glossário…”."
+                 TextWrapping="Wrap" MaxWidth="420" IsVisible="{Binding IsEmpty}" />
+      <ListBox ItemsSource="{Binding Visible}" Background="Transparent" Padding="8">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="4" />
+          </Style>
+        </ListBox.Styles>
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="vm:GlossaryTermViewModel">
+            <Border Classes="card">
+              <Grid ColumnDefinitions="*,*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="4">
+                <TextBlock Classes="subtle" FontSize="11" Text="Inglês (original)" />
+                <TextBlock Grid.Column="1" Classes="subtle" FontSize="11" Text="Português (tradução)" />
+                <TextBox Grid.Row="1" Text="{Binding Original}" PlaceholderText="ex.: Exalted One" />
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Translation}" PlaceholderText="ex.: Exaltado" />
+                <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                  <CheckBox Content="Maiúsculas" IsChecked="{Binding MatchCase}"
+                            ToolTip.Tip="Marcado: só encontra o termo escrito exatamente assim (ex.: “Joker” e não “joker”)." />
+                  <Button Content="Remover" Command="{Binding RemoveCommand}" />
+                </StackPanel>
+                <TextBox Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding Description}" AcceptsReturn="True" TextWrapping="Wrap"
+                         PlaceholderText="Descrição: o que é, contexto, observações de estilo…" />
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Panel>
+  </DockPanel>
+</UserControl>

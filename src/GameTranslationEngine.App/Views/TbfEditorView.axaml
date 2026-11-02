@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GameTranslationEngine.App.ViewModels"
+             xmlns:c="using:GameTranslationEngine.App.Controls"
+             x:Class="GameTranslationEngine.App.Views.TbfEditorView"
+             x:DataType="vm:TbfEditorViewModel">
+  <DockPanel>
+    <!-- Header: file, progress, filters, save -->
+    <Border Classes="bar" DockPanel.Dock="Top" Padding="16,10" BorderThickness="0,0,0,1"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+      <StackPanel Spacing="8">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2">
+            <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding Heading}" />
+            <SelectableTextBlock Classes="subtle" FontSize="11" Text="{Binding Location}" TextWrapping="Wrap" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <TextBlock VerticalAlignment="Center" Text="● alterações não salvas" Foreground="#C27C0E"
+                       IsVisible="{Binding IsDirty}" />
+            <Button Classes="accent" Content="Salvar (Ctrl+S)" Command="{Binding SaveCommand}" />
+          </StackPanel>
+        </Grid>
+        <!-- Scene notes of the team (header.context of the TBF). -->
+        <Grid ColumnDefinitions="220,*" ColumnSpacing="10">
+          <TextBox Text="{Binding ContextLocation}" PlaceholderText="Local da cena" FontSize="12"
+                   ToolTip.Tip="Onde a cena acontece (anotação da equipe, salva no próprio arquivo)" />
+          <TextBox Grid.Column="1" Text="{Binding ContextSummary}" PlaceholderText="Contexto: o que acontece na cena, quem fala…"
+                   FontSize="12" TextWrapping="Wrap" AcceptsReturn="True" MaxHeight="80"
+                   ToolTip.Tip="Resumo da cena para quem traduz (anotação da equipe, salva no próprio arquivo)" />
+        </Grid>
+        <Grid ColumnDefinitions="Auto,200,*,Auto" ColumnSpacing="12">
+          <TextBlock VerticalAlignment="Center" Text="{Binding ProgressText}" />
+          <ProgressBar Grid.Column="1" VerticalAlignment="Center" Value="{Binding ProgressPercent}" />
+          <TextBox Grid.Column="2" PlaceholderText="Buscar na chave, no original ou na tradução…" Text="{Binding SearchText}" />
+          <ComboBox Grid.Column="3" MinWidth="130" ItemsSource="{Binding Filters}" SelectedItem="{Binding Filter}" />
+        </Grid>
+        <TextBlock Classes="error" Text="{Binding SaveError}"
+                   IsVisible="{Binding SaveError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      </StackPanel>
+    </Border>
+
+    <Panel>
+      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Classes="subtle"
+                 Text="Nenhuma mensagem com esse filtro." IsVisible="{Binding IsEmpty}" />
+      <ListBox x:Name="Messages" ItemsSource="{Binding Visible}" SelectedItem="{Binding Selected}"
+               Background="Transparent" Padding="8">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="4" />
+          </Style>
+        </ListBox.Styles>
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="vm:MessageViewModel">
+            <Border Classes="card" Classes.translated="{Binding IsTranslated}">
+              <StackPanel Spacing="6">
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="10">
+                  <TextBlock Classes="subtle" Text="{Binding Number, StringFormat='#{0}'}" />
+                  <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding Key}" />
+                  <TextBlock Grid.Column="2" Classes="subtle" FontSize="12" VerticalAlignment="Center" Text="{Binding LengthInfo}" />
+                  <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
+                    <Button Padding="8,2" FontSize="12" Content="Copiar original" Command="{Binding CopyOriginalCommand}" />
+                    <Button Padding="8,2" FontSize="12" Content="Limpar" Command="{Binding ClearCommand}" />
+                  </StackPanel>
+                </Grid>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="subtle" FontSize="11" Text="Original" />
+                    <c:MessageEditor IsReadOnly="True" Text="{Binding Original, Mode=OneWay}" Services="{Binding Services}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="2">
+                    <TextBlock Classes="subtle" FontSize="11" Text="Tradução" />
+                    <c:MessageEditor IsTranslation="True" Text="{Binding Translation}" Services="{Binding Services}"
+                                     Watermark="(vazio: o texto original será mantido)" />
+                  </StackPanel>
+                </Grid>
+                <TextBlock FontSize="11" Foreground="#2B88D8" TextWrapping="Wrap" Text="{Binding GlossaryHint}"
+                           IsVisible="{Binding GlossaryHint, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Classes="subtle" FontSize="11" IsVisible="{Binding HasAfterMessage}"
+                           Text="{Binding AfterMessage, StringFormat='Códigos finais (mantidos automaticamente): {0}'}" />
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Panel>
+  </DockPanel>
+</UserControl>

@@ -1,0 +1,144 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GameTranslationEngine.App.ViewModels"
+             xmlns:v="using:GameTranslationEngine.App.Views"
+             x:Class="GameTranslationEngine.App.Views.ProjectView"
+             x:DataType="vm:ProjectViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCurrentCommand}" />
+  </UserControl.KeyBindings>
+
+  <DockPanel>
+    <!-- Top bar -->
+    <Border Classes="bar" DockPanel.Dock="Top" Padding="12,8" BorderThickness="0,0,0,1"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+        <Image Source="{Binding Logo}" Height="34" VerticalAlignment="Center"
+               IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+          <TextBlock FontSize="16" FontWeight="SemiBold" Text="{Binding Name}" />
+          <TextBlock Classes="subtle" FontSize="12" Text="{Binding IsoSummary}" TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <StackPanel VerticalAlignment="Center" Spacing="2" IsVisible="{Binding IsBusy}">
+            <TextBlock FontSize="11" Classes="subtle" Text="{Binding BusyStep}" />
+            <ProgressBar Width="180" Value="{Binding BusyProgress}" />
+          </StackPanel>
+          <Button Content="Glossário" Command="{Binding ShowGlossaryCommand}"
+                  ToolTip.Tip="Termos de referência da tradução (translation/glossary.json)" />
+          <Button Content="Gerar da ISO" Command="{Binding GenerateCommand}"
+                  ToolTip.Tip="Lê os textos do jogo direto da ISO e cria os arquivos de tradução que ainda não existem. Arquivos existentes nunca são alterados." />
+          <Button Content="Validar" Command="{Binding ValidateCommand}"
+                  ToolTip.Tip="Confere toda a tradução (caracteres, comandos, mensagens) sem gravar nada" />
+          <Button Classes="accent" Content="Compilar ISO…" Command="{Binding BuildIsoCommand}"
+                  ToolTip.Tip="Gera a ISO traduzida a partir da ISO original e dos arquivos de tradução, e confere o resultado" />
+          <Button Content="Importar TBF…" Command="{Binding ImportTbfCommand}"
+                  ToolTip.Tip="Copia arquivos .tbf de outra pasta (ex.: da v2) para o projeto, sem sobrescrever os existentes" />
+          <Button Content="Recarregar" Command="{Binding ReloadFilesCommand}" />
+          <Button Content="Fechar projeto" Command="{Binding CloseProjectCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Status bar -->
+    <Border Classes="bar" DockPanel.Dock="Bottom" Padding="12,4" BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock FontSize="12" Classes="subtle" Text="{Binding Status}" />
+        <TextBlock Grid.Column="1" FontSize="12" Classes="subtle" Text="{Binding SpellerStatus}" />
+      </Grid>
+    </Border>
+
+    <TextBlock DockPanel.Dock="Top" Classes="error" Margin="12,8" Text="{Binding IsoWarning}"
+               IsVisible="{Binding IsoWarning, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+    <Grid ColumnDefinitions="340,4,*">
+      <!-- Browser -->
+      <TabControl Grid.Column="0" Padding="0" Background="{DynamicResource PanelBackground}">
+        <TabItem Header="Tradução">
+          <DockPanel Margin="8">
+            <TextBox DockPanel.Dock="Top" Margin="0,0,0,8" PlaceholderText="Filtrar arquivos…" Text="{Binding FileFilter}" />
+            <TextBlock DockPanel.Dock="Top" Classes="subtle" TextWrapping="Wrap" IsVisible="{Binding HasNoFiles}"
+                       Text="Nenhum arquivo de tradução ainda. Clique em “Gerar da ISO” para criar os arquivos a partir do jogo, ou em “Importar TBF…” para trazer traduções da v2." />
+            <TreeView ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedNode}">
+              <TreeView.DataTemplates>
+                <TreeDataTemplate DataType="vm:TbfGroupViewModel" ItemsSource="{Binding Files}">
+                  <TextBlock FontWeight="SemiBold" Text="{Binding Summary}" />
+                </TreeDataTemplate>
+                <DataTemplate DataType="vm:TbfFileItemViewModel">
+                  <Grid ColumnDefinitions="*,Auto" Margin="0,0,16,0">
+                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Margin="8,0,0,0" FontSize="12" Text="{Binding ProgressText}"
+                               Classes="subtle" Classes.done="{Binding IsDone}" />
+                  </Grid>
+                </DataTemplate>
+              </TreeView.DataTemplates>
+            </TreeView>
+          </DockPanel>
+        </TabItem>
+        <TabItem Header="Busca">
+          <DockPanel Margin="8">
+            <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,8">
+              <TextBox PlaceholderText="Buscar em todos os arquivos…" Text="{Binding Search.Query}" />
+              <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Search.Scopes}" SelectedItem="{Binding Search.Scope}" />
+              <CheckBox Content="Diferenciar maiúsculas" IsChecked="{Binding Search.MatchCase}" />
+              <TextBlock Classes="subtle" FontSize="12" TextWrapping="Wrap" Text="{Binding Search.Summary}" />
+            </StackPanel>
+            <ListBox ItemsSource="{Binding Search.Results}" SelectedItem="{Binding Search.Selected}" Background="Transparent">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="vm:SearchHitViewModel">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="subtle" FontSize="11" Text="{Binding Location}" TextTrimming="CharacterEllipsis" />
+                    <!-- Runs on one line: whitespace between them would show as spaces. -->
+                    <TextBlock FontSize="12" TextWrapping="Wrap"><Run Text="{Binding Before}" /><Run Text="{Binding Match}" FontWeight="SemiBold" Background="#73F2C230" /><Run Text="{Binding After}" /></TextBlock>
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </TabItem>
+        <TabItem Header="ISO">
+          <DockPanel Margin="8">
+          <Button DockPanel.Dock="Top" Margin="0,0,0,8" Content="Exportar fontes…" Command="{Binding ExportFontsCommand}"
+                  ToolTip.Tip="Salva as páginas da fonte do jogo em PNG (fonts/original) e uma cópia editável do perfil PT-BR (fonts/pt-br)" />
+          <TreeView ItemsSource="{Binding IsoTree}">
+            <TreeView.DataTemplates>
+              <TreeDataTemplate DataType="vm:IsoNodeViewModel" ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Text="{Binding Name}" />
+                  <TextBlock Classes="subtle" FontSize="12" VerticalAlignment="Center" Text="{Binding Detail}" />
+                </StackPanel>
+              </TreeDataTemplate>
+            </TreeView.DataTemplates>
+          </TreeView>
+          </DockPanel>
+        </TabItem>
+      </TabControl>
+
+      <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
+
+      <!-- Editor -->
+      <Panel Grid.Column="2">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6"
+                    IsVisible="{Binding Panel, Converter={x:Static ObjectConverters.IsNull}}">
+          <TextBlock HorizontalAlignment="Center" Classes="subtle" Text="Escolha um arquivo na aba Tradução para editar." />
+          <TextBlock HorizontalAlignment="Center" Classes="error" Text="{Binding EditorError}" />
+        </StackPanel>
+        <ContentControl Content="{Binding Panel}">
+          <ContentControl.DataTemplates>
+            <DataTemplate DataType="vm:TbfEditorViewModel">
+              <v:TbfEditorView />
+            </DataTemplate>
+            <DataTemplate DataType="vm:GlossaryViewModel">
+              <DockPanel>
+                <Button DockPanel.Dock="Top" Margin="16,8,0,0" Content="← Voltar ao arquivo" Command="{Binding $parent[UserControl].((vm:ProjectViewModel)DataContext).ShowEditorCommand}"
+                        IsVisible="{Binding $parent[UserControl].((vm:ProjectViewModel)DataContext).Editor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <v:GlossaryView />
+              </DockPanel>
+            </DataTemplate>
+          </ContentControl.DataTemplates>
+        </ContentControl>
+      </Panel>
+    </Grid>
+  </DockPanel>
+</UserControl>

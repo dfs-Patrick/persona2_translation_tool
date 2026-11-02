@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:GameTranslationEngine.App.ViewModels"
+             xmlns:e="using:GameTranslationEngine.Core.Engines"
+             x:Class="GameTranslationEngine.App.Views.StartView"
+             x:DataType="vm:StartViewModel">
+  <ScrollViewer>
+    <StackPanel MaxWidth="760" Margin="32" Spacing="24">
+      <StackPanel Spacing="4">
+        <Image Source="{Binding Logo}" Height="72" HorizontalAlignment="Left" Margin="0,0,0,12"
+               IsVisible="{Binding Logo, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <TextBlock Classes="title" Text="Game Translation Engine" />
+        <TextBlock Classes="subtle" TextWrapping="Wrap"
+                   Text="Crie um projeto a partir da ISO original do jogo ou abra um projeto existente. A ISO nunca é alterada: ela só é lida." />
+      </StackPanel>
+
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+          <TextBlock Classes="section" Text="Novo projeto" />
+          <Grid ColumnDefinitions="140,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="8">
+            <TextBlock Grid.Row="0" VerticalAlignment="Center" Text="Motor (jogo)" />
+            <ComboBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding Engines}" SelectedItem="{Binding Engine}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="e:IGameEngine">
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Classes="subtle" FontSize="12" TextWrapping="Wrap"
+                       Text="{Binding Engine.Description}" />
+
+            <TextBlock Grid.Row="2" VerticalAlignment="Center" Text="Nome" />
+            <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding ProjectName}" />
+
+            <TextBlock Grid.Row="3" VerticalAlignment="Center" Text="ISO original" />
+            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding IsoPath}" PlaceholderText="Caminho da ISO (ex.: lab/p2is.iso)" />
+            <Button Grid.Row="3" Grid.Column="2" Content="Procurar…" Command="{Binding BrowseIsoCommand}" />
+
+            <TextBlock Grid.Row="4" VerticalAlignment="Center" Text="Pasta do projeto" />
+            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding ProjectFolder}" PlaceholderText="Onde os arquivos de tradução ficarão" />
+            <Button Grid.Row="4" Grid.Column="2" Content="Procurar…" Command="{Binding BrowseFolderCommand}" />
+          </Grid>
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Button Classes="accent" Content="Criar projeto" Command="{Binding CreateCommand}" />
+            <StackPanel Spacing="4" VerticalAlignment="Center" IsVisible="{Binding IsBusy}">
+              <TextBlock Text="{Binding ProgressText}" />
+              <ProgressBar Width="300" Value="{Binding Progress}" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="section" VerticalAlignment="Center" Text="Abrir projeto" />
+            <Button Grid.Column="1" Content="Abrir projeto…" Command="{Binding OpenCommand}" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding Recent}" IsVisible="{Binding HasRecent}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:RecentProject">
+                <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="0,2"
+                        Command="{Binding $parent[ItemsControl].((vm:StartViewModel)DataContext).OpenRecentCommand}"
+                        CommandParameter="{Binding}">
+                  <StackPanel>
+                    <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                    <TextBlock Classes="subtle" FontSize="12" Text="{Binding Folder}" />
+                  </StackPanel>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <TextBlock Classes="error" Text="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

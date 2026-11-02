@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GameTranslationEngine.App.ViewModels"
+        xmlns:v="using:GameTranslationEngine.App.Views"
+        x:Class="GameTranslationEngine.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding Title}"
+        Icon="avares://GameTranslationEngine/Assets/icon.ico"
+        Width="1280" Height="800" MinWidth="900" MinHeight="560"
+        WindowStartupLocation="CenterScreen">
+  <Panel>
+  <!-- Game art faded behind everything; the panels on top keep their own backgrounds for reading. -->
+  <Image Source="{Binding Background}" Stretch="UniformToFill" Opacity="0.28" IsHitTestVisible="False" />
+  <ContentControl Content="{Binding CurrentPage}">
+    <ContentControl.DataTemplates>
+      <DataTemplate DataType="vm:StartViewModel">
+        <v:StartView />
+      </DataTemplate>
+      <DataTemplate DataType="vm:ProjectViewModel">
+        <v:ProjectView />
+      </DataTemplate>
+    </ContentControl.DataTemplates>
+  </ContentControl>
+  </Panel>
+</Window>

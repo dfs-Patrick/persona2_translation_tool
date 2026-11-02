@@ -1,0 +1,71 @@
+{
+  "comment": "Tabelas do EBOOT (ULUS-10584) com a posição de cada arquivo dentro de um container do CPK. Endereços de v2 (game/is/toc.json), conferidos contra a ISO original: a ferramenta só grava depois de ver que a tabela original corresponde ao container original. sizeAdjust: o que a tabela soma ao tamanho da entrada (MMAP guarda o tamanho sem o cabeçalho de 8 bytes).",
+  "tables": [
+    {
+      "file": "event.bin",
+      "format": "ear",
+      "address": "0x08BBC910"
+    },
+    {
+      "file": "DNGSCN.BNP",
+      "format": "bnp_sector",
+      "address": "0x08C79F90",
+      "sizeAdjust": 0
+    },
+    {
+      "file": "MMAP01.BNP",
+      "format": "bnp_sector",
+      "address": "0x08C1D5F8",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "MMAP02.BNP",
+      "format": "bnp_sector",
+      "address": "0x08C1D538",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "MMAP03.BNP",
+      "format": "bnp_sector",
+      "address": "0x08C1D488",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "MMAP04.BNP",
+      "format": "bnp_sector",
+      "address": "0x08C1D3E0",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "MMAP05.BNP",
+      "format": "bnp_sector",
+      "address": "0x08C1D3C0",
+      "sizeAdjust": -8
+    },
+    {
+      "file": "MMAP06.BNP",
+      "format": "bnp_sector",
+      "address": "0x08C1D338",
+      "sizeAdjust": -8
+    }
+  ],
+  "font": {
+    "comment": "Tabelas da fonte, localizadas pelo conteúdo original (v2 font_profile.ts). eventToFont: código da mensagem -> posição na fonte (u16). regularMetrics: por glifo, coluna inicial e largura (u8, u8). narrowMetrics: o mesmo em u32, só até 0x11F.",
+    "eventToFont": {
+      "signature": "35003600010005002b11ea05310ecf09ec09dc085a11350aaa0e23089c0a2001220124012601280129012b012d012f01310133013501370139013b013d013f01",
+      "entries": 4096,
+      "entrySize": 2
+    },
+    "regularMetrics": {
+      "signature": "00080206050506040603060306030603020b0308010602050704070506060606",
+      "entries": 1280,
+      "entrySize": 2
+    },
+    "narrowMetrics": {
+      "signature": "0000000008000000010000000400000001000000040000000100000004000000",
+      "entries": 287,
+      "entrySize": 8
+    },
+    "pagesFile": "syscg.bin"
+  }
+}

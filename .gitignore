@@ -1,27 +1,18 @@
-node_modules
-.work
-tmp
-clean*
-build
-extract
-dist
-
-# Local game workspace: never commit extracted or translated game content.
+# Local workspace: ISO, projects, team material and experiments never go to the repository.
 /lab/
-/dump/
-/translation/
-/iso/
+# Earlier versions: v2 is tag 1.0 of this repository; v1 is github.com/eiowlta/p2_tool.
+/old_versions/
 
-# Game images and extracted assets, even when placed outside lab/.
+# Build output
+bin/
+obj/
+/publicar/
+*.user
+.vs/
+.idea/
+
+# Game images, even when placed outside lab/.
 *.[iI][sS][oO]
-*.[iI][sS][oO].*
 *.[cC][sS][oO]
 *.[cC][hH][dD]
 *.[cC][pP][kK]
-*.[gG][iI][mM]
-*.[tT][bB][fF]
-*.vsix
-!vscode-extension/p2-tbf-editor.vsix
-!vscode-ppsspp-host/p2-ppsspp-host.vsix
-
-/release/
